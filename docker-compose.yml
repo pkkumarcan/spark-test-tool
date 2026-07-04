@@ -14,10 +14,10 @@ services:
       - F5_TTS_URL=http://f5-tts:8000
       - OUTPUT_DIR=/app/output
       - COMFYUI_OUTPUT_DIR=/comfyui-output
-      - WORKSPACE_ROOT=/workspace/project
+      - WORKSPACE_ROOT=/workspace/spark-test-tool
       - SPARK_API_KEY=${SPARK_API_KEY:-}
     volumes:
-      - .:/workspace/project
+      - /home/pkkumar/AGGY:/workspace
       - ./output:/app/output
       - /home/pkkumar/spark-factory/ComfyUI/output:/comfyui-output:ro
     extra_hosts:
