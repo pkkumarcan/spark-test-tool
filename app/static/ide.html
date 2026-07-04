@@ -772,6 +772,8 @@
       z-index: 999;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.error { border-color: var(--red); background: rgba(239, 68, 68, 0.15); color: #fff; }
+    #toast.success { border-color: var(--green); background: rgba(34, 197, 94, 0.15); color: #fff; }
 
     @media (max-width: 768px) {
       .left-panel { position: fixed; z-index: 100; height: calc(100vh - 52px); top: 52px; }
@@ -980,7 +982,7 @@
         .then(r => r.json())
         .then(data => {
           if (data.status !== 'ok') {
-            showToast('Failed to load file');
+            showToast('Failed to load file', 'error');
             return;
           }
           const existing = openTabs.find(t => t.path === path);
@@ -999,7 +1001,7 @@
           document.getElementById('btn-save-editor').classList.add('visible');
           renderEditorTabs();
         })
-        .catch(() => showToast('Error loading file'));
+        .catch(() => showToast('Error loading file', 'error'));
     }
 
     function switchEditorTab(path) {
@@ -1072,12 +1074,12 @@
             tab.content = content;
           }
           renderEditorTabs();
-          showToast('File saved');
+          showToast('File saved', 'success');
         } else {
-          showToast('Failed to save file');
+          showToast('Failed to save file', 'error');
         }
       } catch {
-        showToast('Error saving file');
+        showToast('Error saving file', 'error');
       }
     }
 
@@ -1681,9 +1683,10 @@
       return wrapper;
     }
 
-    function showToast(msg) {
+    function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
+      t.className = type;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
     }
