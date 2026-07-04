@@ -1,31 +1,30 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
-.venv/
-env/
+*.so
 
-# IDE State
+# Caches and state files
 .spark_coder/
 .env
 
-# Large Assets & Caches
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Massive media and output folders
 output/
 model-cache/
 node_modules/
 qdrant_storage/
 cache/
-*.pyc
 
-# Docker
-docker-compose.override.yml
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Scratch & temp
-scratch/
+# User logs & local workspace artifacts
 *.log
-*.tmp
+*.png
+*.webp
+*.jpg
+*.jpeg
+*.mp4

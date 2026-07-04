@@ -557,5 +557,6 @@ import app.backends.workspace as _workspace
 
 def set_workspace_root(new_root: str):
     _workspace.WORKSPACE_ROOT = new_root
-    global WORKSPACE_ROOT
+    global WORKSPACE_ROOT, SESSION_DIR
     WORKSPACE_ROOT = new_root
+    SESSION_DIR = os.path.join(WORKSPACE_ROOT, ".spark_coder", "sessions")
