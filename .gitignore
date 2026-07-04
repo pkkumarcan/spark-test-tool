@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# IDE State
+.spark_coder/
+.env
+
+# Large Assets & Caches
+output/
+model-cache/
+node_modules/
+qdrant_storage/
+cache/
+*.pyc
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scratch & temp
+scratch/
+*.log
+*.tmp

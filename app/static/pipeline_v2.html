@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPARK Media Workstation V2</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #080c14;
+      --panel-bg: rgba(15, 23, 42, 0.65);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      /* HSL tailored color palette */
+      --accent-violet: #8b5cf6;
+      --accent-indigo: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      
+      --status-pending: #f59e0b;
+      --status-running: #3b82f6;
+      --status-completed: #10b981;
+      --status-failed: #ef4444;
+      
+      --font-display: 'Outfit', sans-serif;
+      --font-sans: 'Inter', sans-serif;
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.07) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Container */
+    .app-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Glassmorphism Panel base */
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    /* Top Control Header */
+    .header-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 18px 24px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: var(--accent-gradient);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 22px;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(to right, #fff 30%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text span {
+      font-size: 11px;
+      color: var(--accent-indigo);
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .selectors {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .selector-wrapper {
+      position: relative;
+    }
+
+    .selector-wrapper select {
+      appearance: none;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 10px 36px 10px 16px;
+      cursor: pointer;
+      outline: none;
+      transition: var(--transition-smooth);
+      min-width: 140px;
+    }
+
+    .selector-wrapper select:hover, .selector-wrapper select:focus {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+    }
+
+    .selector-wrapper::after {
+      content: '\ea5f'; /* tabler-icon chevron-down */
+      font-family: 'tabler-icons';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      font-size: 14px;
+    }
+
+    /* Wall Nav Tabs */
+    .wall-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-gradient);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Main Content Layout */
+    .wall-container {
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .wall-container.active {
+      display: grid;
+      gap: 24px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Templates */
+    .research-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .production-grid {
+      grid-template-columns: 320px 1fr;
+    }
+
+    .review-grid {
+      grid-template-columns: 1.2fr 0.8fr;
+    }
+
+    @media (max-width: 1024px) {
+      .research-grid, .production-grid, .review-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sub-panels and Cards */
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+
+    .panel-header h2 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-header h2 i {
+      color: var(--accent-indigo);
+    }
+
+    /* Markdown styling */
+    .markdown-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+      color: var(--text-main);
+      font-family: var(--font-display);
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .markdown-body h1 { font-size: 20px; border-bottom: 1px solid var(--panel-border); padding-bottom: 6px; }
+    .markdown-body h2 { font-size: 16px; }
+    .markdown-body h3 { font-size: 14px; }
+    .markdown-body p { margin-bottom: 12px; }
+    .markdown-body ul, .markdown-body ol { margin-left: 20px; margin-bottom: 12px; }
+    .markdown-body li { margin-bottom: 4px; }
+    .markdown-body blockquote {
+      border-left: 3px solid var(--accent-indigo);
+      background: rgba(99, 102, 241, 0.05);
+      padding: 8px 12px;
+      margin: 12px 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .markdown-body hr {
+      border: 0;
+      height: 1px;
+      background: var(--panel-border);
+      margin: 20px 0;
+    }
+
+    /* Lists/Boards */
+    .topic-list, .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .topic-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: var(--transition-smooth);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topic-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: transparent;
+      transition: var(--transition-smooth);
+    }
+
+    .topic-card:hover {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: var(--accent-indigo);
+      transform: translateY(-2px);
+    }
+
+    .topic-card.selected::before {
+      background: var(--accent-gradient);
+    }
+
+    .topic-card.selected {
+      background: rgba(99, 102, 241, 0.06);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .topic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .topic-rank {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-indigo);
+    }
+
+    .topic-score {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--status-completed);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .topic-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .topic-week {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Job Card styling */
+    .job-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .job-card:hover {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: var(--accent-indigo);
+    }
+
+    .job-card.active {
+      background: rgba(99, 102, 241, 0.05);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .job-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .job-code {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .job-status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .job-status-badge.pending { background: rgba(245, 158, 11, 0.1); color: var(--status-pending); border: 1px solid rgba(245, 158, 11, 0.2); }
+    .job-status-badge.pending_approval { background: rgba(139, 92, 246, 0.1); color: var(--accent-violet); border: 1px solid rgba(139, 92, 246, 0.2); }
+    .job-status-badge.running { background: rgba(59, 130, 246, 0.1); color: var(--status-running); border: 1px solid rgba(59, 130, 246, 0.2); }
+    .job-status-badge.completed { background: rgba(16, 185, 129, 0.1); color: var(--status-completed); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .job-status-badge.failed { background: rgba(239, 68, 68, 0.1); color: var(--status-failed); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    .job-topic {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .job-progress {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .job-progress-bar {
+      height: 100%;
+      background: var(--accent-gradient);
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .job-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Buttons */
+    .btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+      outline: none;
+    }
+
+    .btn:hover {
+      background: rgba(30, 41, 59, 1);
+      border-color: var(--text-muted);
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #9b72f8 0%, #7679f3 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:disabled, .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Script Synthesis Editor */
+    .script-editor-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .script-section {
+      background: rgba(30, 41, 59, 0.2);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .script-section-header {
+      padding: 12px 18px;
+      background: rgba(15, 23, 42, 0.4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .script-section-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .script-section-title span {
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .script-section-title span.hook { background: rgba(139, 92, 246, 0.15); color: var(--accent-violet); }
+    .script-section-title span.intro { background: rgba(59, 130, 246, 0.15); color: var(--status-running); }
+    .script-section-title span.body { background: rgba(245, 158, 11, 0.15); color: var(--status-pending); }
+    .script-section-title span.cta { background: rgba(16, 185, 129, 0.15); color: var(--status-completed); }
+
+    .script-section-body {
+      padding: 16px;
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .script-section-body textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 12px;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .script-section-body textarea:focus {
+      border-color: var(--accent-indigo);
+    }
+
+    .script-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* Connected Assets Panel */
+    .assets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .asset-item {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .asset-item:hover {
+      background: rgba(30, 41, 59, 0.6);
+      border-color: var(--accent-indigo);
+    }
+
+    .asset-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #090d16;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--text-muted);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .asset-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .asset-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      width: 100%;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    /* Video Player & Final Review */
+    .video-hero {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-hero video {
+      width: 100%;
+      height: 100%;
+    }
+
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+    }
+
+    .video-placeholder i {
+      font-size: 48px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .meta-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-group input, .form-group textarea {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 10px 14px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--accent-indigo);
+    }
+
+    /* Overlay / Modals */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-dark);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 20px;
+      transition: var(--transition-smooth);
+    }
+
+    .modal-close:hover {
+      color: var(--text-main);
+    }
+
+    .modal h3 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-indigo);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      z-index: 2000;
+      font-size: 13px;
+      color: var(--text-main);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .toast.success { border-color: var(--status-completed); }
+    .toast.error { border-color: var(--status-failed); }
+
+    /* Empty state helper */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+      gap: 12px;
+      text-align: center;
+    }
+
+    .empty-state i {
+      font-size: 40px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Controller -->
+    <header class="glass-panel header-panel">
+      <div class="brand-title">
+        <div class="brand-logo">
+          <i class="ti ti-bolt"></i>
+        </div>
+        <div class="brand-text">
+          <span>Production Suite</span>
+          <h1>SPARK WORKSTATION</h1>
+        </div>
+      </div>
+
+      <div class="selectors">
+        <div class="selector-wrapper">
+          <select id="channelSelect" onchange="handleChannelChange()">
+            <!-- Channels loaded dynamically -->
+          </select>
+        </div>
+        <div class="selector-wrapper">
+          <select id="weekSelect" onchange="handleWeekChange()">
+            <!-- Weeks loaded dynamically -->
+            <option value="26w26">Week 26 (26w26)</option>
+            <option value="26w27" selected>Week 27 (26w27)</option>
+            <option value="26w28">Week 28 (26w28)</option>
+            <option value="26w29">Week 29 (26w29)</option>
+            <option value="26w30">Week 30 (26w30)</option>
+          </select>
+        </div>
+      </div>
+
+      <nav class="wall-tabs">
+        <button class="tab-btn active" onclick="switchWall('research')">
+          <i class="ti ti-microscope"></i> Research Wall
+        </button>
+        <button class="tab-btn" onclick="switchWall('production')">
+          <i class="ti ti-device-cctv"></i> Production Area
+        </button>
+        <button class="tab-btn" onclick="switchWall('review')">
+          <i class="ti ti-movie"></i> Final Review
+        </button>
+      </nav>
+    </header>
+
+    <!-- Wall 1: Research Wall -->
+    <main id="researchWall" class="wall-container research-grid active">
+      <!-- Strategy Briefs -->
+      <section class="glass-panel">
+        <div class="panel-header">
+          <h2><i class="ti ti-notes"></i> Master Channel Strategy</h2>
+          <button class="btn" onclick="loadResearch()"><i class="ti ti-refresh"></i> Refresh</button>
+        </div>
+        <div id="briefContent" class="markdown-body">
+          <div class="empty-state">
+            <i class="ti ti-loader-quarter ti-spin"></i>
+            <p>Loading channel strategy files...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Topic Priority Maps -->
+      <section class="glass-panel" style="display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <div class="panel-header">
+            <h2><i class="ti ti-list-numbers"></i> Priority Topics & Deep Notes</h2>
+          </div>
+          <div id="topicList" class="topic-list">
+            <!-- Topics rendered dynamically -->
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--panel-border); padding-top: 18px; flex: 1; display: flex; flex-direction: column;">
+          <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 600; margin-bottom: 12px;">Selected Topic Deep Notes</h3>
+          <div id="topicNotes" class="markdown-body" style="flex: 1; max-height: 300px; background: rgba(15, 23, 42, 0.4); padding: 12px; border-radius: 8px; border: 1px solid var(--panel-border);">
+            <p style="color: var(--text-muted); font-size: 13px; font-style: italic;">Select a topic above to view its detailed research notes.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Wall 2: Production Wall -->
+    <main id="productionWall" class="wall-container production-grid">
+      <!-- Left sidebar: Jobs for selected week/channel -->
+      <section class="glass-panel" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="panel-header" style="margin-bottom: 0;">
+          <h2><i class="ti ti-folders"></i> Episode Batches</h2>
+          <button class="btn" style="padding: 6px 10px;" onclick="loadJobs()"><i class="ti ti-refresh"></i></button>
+        </div>
+        
+        <div id="jobList" class="job-list" style="flex: 1;">
+          <!-- Jobs rendered dynamically -->
+        </div>
+
+        <button id="initJobBtn" class="btn btn-primary" style="justify-content: center; width: 100%;" onclick="initializeJob()" disabled>
+          <i class="ti ti-circle-plus"></i> Launch Selected Topic
+        </button>
+      </section>
+
+      <!-- Right detail: Script editor and Asset grid -->
+      <section style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Script accordion -->
+        <div class="glass-panel">
+          <div class="panel-header" style="justify-content: space-between;">
+            <h2><i class="ti ti-script"></i> Script Synthesis & Manual Overrides</h2>
+            <div style="display: flex; gap: 8px;">
+              <button id="approveJobBtn" class="btn btn-primary" onclick="approveJob()" disabled>
+                <i class="ti ti-circle-check"></i> Approve & Generate Assets
+              </button>
+              <button id="rejectJobBtn" class="btn" style="color: var(--status-failed);" onclick="rejectJob()" disabled>
+                <i class="ti ti-circle-x"></i> Reject
+              </button>
+            </div>
+          </div>
+
+          <div id="scriptEditor" class="script-editor-container">
+            <div class="empty-state">
+              <i class="ti ti-click"></i>
+              <p>Select a running or pending episode from the left sidebar to view/edit the script.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Asset grid -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h2><i class="ti ti-grid-pattern"></i> Synthesis Asset Board</h2>
+            <span id="assetCount" style="font-size: 11px; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 10px;">0 Assets</span>
+          </div>
+
+          <div id="assetGrid" class="assets-grid">
+            <!-- Assets rendered dynamically -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Wall 3: Final Review Wall -->
+    <main id="reviewWall" class="wall-container review-grid">
+      <!-- Left: Standard Video Player -->
+      <section class="glass-panel" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="panel-header">
+          <h2><i class="ti ti-player-play"></i> Final Video Preview</h2>
+        </div>
+
+        <div id="videoContainer" class="video-hero">
+          <div class="video-placeholder">
+            <i class="ti ti-video-off"></i>
+            <p>No final video generated for this week's batch.</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 600; margin-bottom: 12px;">Subtitled Shorts / Micro-content</h3>
+          <div id="shortsGrid" class="assets-grid">
+            <!-- Shorts rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: SEO & Publishing Module -->
+      <section class="glass-panel" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="panel-header">
+          <h2><i class="ti ti-brand-youtube"></i> SEO & Publishing Package</h2>
+        </div>
+
+        <div class="meta-editor">
+          <div class="form-group">
+            <label for="seoTitle">Recommended Video Title</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="seoTitle" style="flex: 1;" placeholder="Title not generated yet...">
+              <button class="btn" style="padding: 10px;" onclick="copyToClipboard('seoTitle')"><i class="ti ti-copy"></i></button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="seoDesc">Video Description</label>
+            <div style="display: flex; gap: 8px;">
+              <textarea id="seoDesc" style="flex: 1; min-height: 140px;" placeholder="Description not generated yet..."></textarea>
+              <button class="btn" style="padding: 10px;" onclick="copyToClipboard('seoDesc')"><i class="ti ti-copy"></i></button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="seoTags">Suggested Tags (Comma separated)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="seoTags" style="flex: 1;" placeholder="tags, go, here...">
+              <button class="btn" style="padding: 10px;" onclick="copyToClipboard('seoTags')"><i class="ti ti-copy"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--panel-border); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; margin-top: auto;">
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="publishVideo('now')">
+              <i class="ti ti-upload"></i> Post Instantly
+            </button>
+            <button class="btn" style="flex: 1; justify-content: center;" onclick="openScheduleModal()">
+              <i class="ti ti-calendar-event"></i> Schedule Release
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <!-- Ollama Rewrite Modal -->
+  <div id="rewriteOverlay" class="overlay">
+    <div class="modal">
+      <div class="modal-close" onclick="closeRewriteModal()"><i class="ti ti-x"></i></div>
+      <h3><i class="ti ti-wand" style="color: var(--accent-indigo);"></i> Ollama Prompt Rewrite</h3>
+      <p style="font-size: 12px; color: var(--text-muted);">Provide directions to rewrite this section (e.g., "Make it more dramatic" or "Shorten to one sentence").</p>
+      
+      <div class="form-group">
+        <label for="rewriteInstruction">Rewrite Instruction</label>
+        <textarea id="rewriteInstruction" style="min-height: 80px;" placeholder="Enter instructions here..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn" onclick="closeRewriteModal()">Cancel</button>
+        <button id="runRewriteBtn" class="btn btn-primary" onclick="submitRewrite()">Apply Magic</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Release Modal -->
+  <div id="scheduleOverlay" class="overlay">
+    <div class="modal">
+      <div class="modal-close" onclick="closeScheduleModal()"><i class="ti ti-x"></i></div>
+      <h3><i class="ti ti-calendar-time" style="color: var(--accent-indigo);"></i> Schedule Publication</h3>
+      <p style="font-size: 12px; color: var(--text-muted);">Specify a release date and time to put this episode in the automated queue.</p>
+      
+      <div class="form-group">
+        <label for="scheduleTime">Release Date & Time</label>
+        <input type="datetime-local" id="scheduleTime">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn" onclick="closeScheduleModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSchedule()">Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div id="toast" class="toast">
+    <span id="toastIcon"></span>
+    <span id="toastMsg"></span>
+  </div>
+
+  <!-- JS Logic -->
+  <script>
+    // Global Channel mappings matching backend channels.json logic
+    const channels = [
+      { id: "MLN", name: "Macro Lens (MLN)", val: "1" },
+      { id: "RMR", name: "Real Money Review (RMR)", val: "2" },
+      { id: "NHZ", name: "New Horizon (NHZ)", val: "3" },
+      { id: "PKP", name: "Peak Performance (PKP)", val: "4" },
+      { id: "STM", name: "Stoic Mind (STM)", val: "5" },
+      { id: "ODA", name: "Oddly Fact (ODA)", val: "6" },
+      { id: "DFW", name: "Deep Focus Waves (DFW)", val: "7" },
+      { id: "ISL", name: "Inner Wisdom (ISL)", val: "8" },
+      { id: "BWA", name: "Build With AI (BWA)", val: "9" },
+      { id: "DKS", name: "Dark Shield Security (DKS)", val: "10" },
+      { id: "CCL", name: "Courtroom Chronicles (CCL)", val: "11" },
+      { id: "GDB", name: "Geopolitical Brief (GDB)", val: "12" }
+    ];
+
+    let currentChannel = "MLN";
+    let currentWeek = "26w27";
+    let selectedTopic = null;
+    let selectedJob = null;
+    let activeBriefData = null; // In-memory phase 1 JSON state
+    let activeSectionIndex = null; // Current index for Ollama rewrite
+
+    // Initialize application
+    window.addEventListener('DOMContentLoaded', () => {
+      const channelSelect = document.getElementById("channelSelect");
+      channels.forEach(ch => {
+        const opt = document.createElement("option");
+        opt.value = ch.id;
+        opt.textContent = ch.name;
+        channelSelect.appendChild(opt);
+      });
+      
+      // Auto-load
+      loadResearch();
+      loadJobs();
+    });
+
+    // Toast triggers
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById("toast");
+      const icon = document.getElementById("toastIcon");
+      const text = document.getElementById("toastMsg");
+      
+      toast.className = "toast " + type;
+      text.textContent = msg;
+      
+      if(type === "success") {
+        icon.className = "ti ti-circle-check-filled";
+        icon.style.color = "var(--status-completed)";
+      } else {
+        icon.className = "ti ti-circle-x-filled";
+        icon.style.color = "var(--status-failed)";
+      }
+      
+      toast.style.display = "flex";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 3500);
+    }
+
+    // Switch walls
+    function switchWall(wallId) {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if(btn.getAttribute("onclick").includes(wallId)) {
+          btn.classList.add("active");
+        }
+      });
+
+      document.querySelectorAll(".wall-container").forEach(wc => {
+        wc.classList.remove("active");
+      });
+      document.getElementById(`${wallId}Wall`).classList.add("active");
+    }
+
+    // Handle channel change
+    function handleChannelChange() {
+      currentChannel = document.getElementById("channelSelect").value;
+      selectedTopic = null;
+      selectedJob = null;
+      activeBriefData = null;
+      loadResearch();
+      loadJobs();
+    }
+
+    // Handle week change
+    function handleWeekChange() {
+      currentWeek = document.getElementById("weekSelect").value;
+      selectedTopic = null;
+      selectedJob = null;
+      activeBriefData = null;
+      loadResearch();
+      loadJobs();
+    }
+
+    // Load research from compiled channel folder
+    async function loadResearch() {
+      const briefContent = document.getElementById("briefContent");
+      const topicList = document.getElementById("topicList");
+      const topicNotes = document.getElementById("topicNotes");
+      
+      briefContent.innerHTML = `<div class="empty-state"><i class="ti ti-loader-quarter ti-spin"></i><p>Loading channel strategy briefs...</p></div>`;
+      topicList.innerHTML = "";
+      topicNotes.innerHTML = `<p style="color: var(--text-muted); font-size: 13px; font-style: italic;">Select a topic above to view its detailed research notes.</p>`;
+
+      try {
+        const res = await fetch(`/api/v2/research/${currentChannel}`);
+        if(!res.ok) throw new Error("Could not find strategy brief files.");
+        const data = await res.json();
+
+        // 1. Render Master Brief + Audience Profile
+        let htmlBrief = "";
+        if(data.master_brief) {
+          htmlBrief += `<h2>Master Brief</h2>` + marked.parse(data.master_brief);
+        }
+        if(data.audience_profile) {
+          htmlBrief += `<hr><h2>Audience Profile</h2>` + marked.parse(data.audience_profile);
+        }
+        if(!htmlBrief) {
+          htmlBrief = `<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">No strategy brief files found for channel ${currentChannel}.</p>`;
+        }
+        briefContent.innerHTML = htmlBrief;
+
+        // 2. Render Topics
+        if(data.topics && data.topics.length > 0) {
+          // Sort topics
+          data.topics.forEach(t => {
+            const card = document.createElement("div");
+            card.className = "topic-card";
+            card.onclick = () => selectTopic(t, card);
+            
+            card.innerHTML = `
+              <div class="topic-header">
+                <span class="topic-rank">Rank ${t.rank}</span>
+                <span class="topic-score">Score ${t.score}/100</span>
+              </div>
+              <div class="topic-title">${t.title}</div>
+              <div class="topic-week"><i class="ti ti-calendar"></i> Assigned: ${t.weeks}</div>
+            `;
+            topicList.appendChild(card);
+          });
+        } else {
+          topicList.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">No prioritized topics found.</p>`;
+        }
+
+      } catch (err) {
+        briefContent.innerHTML = `<p style="color: var(--status-failed); text-align: center; margin-top: 20px;"><i class="ti ti-alert-triangle"></i> ${err.message}</p>`;
+        topicList.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">Failed to load topic maps.</p>`;
+      }
+    }
+
+    // Select topic
+    function selectTopic(topic, element) {
+      document.querySelectorAll(".topic-card").forEach(c => c.classList.remove("selected"));
+      element.classList.add("selected");
+      
+      selectedTopic = topic;
+      
+      // Render Deep Notes
+      const notesEl = document.getElementById("topicNotes");
+      if(topic.deep_notes) {
+        notesEl.innerHTML = marked.parse(topic.deep_notes);
+      } else {
+        notesEl.innerHTML = `<p style="color: var(--text-muted); font-size: 13px; font-style: italic;">No deep research notes available for this topic.</p>`;
+      }
+
+      // Enable job launcher
+      const launchBtn = document.getElementById("initJobBtn");
+      launchBtn.removeAttribute("disabled");
+      launchBtn.innerHTML = `<i class="ti ti-circle-plus"></i> Launch: "${topic.title.substring(0, 20)}..."`;
+    }
+
+    // Initialize/Create Job for Topic
+    async function initializeJob() {
+      if(!selectedTopic) return;
+      const initBtn = document.getElementById("initJobBtn");
+      initBtn.setAttribute("disabled", "true");
+      initBtn.innerHTML = `<i class="ti ti-loader-quarter ti-spin"></i> Initializing...`;
+
+      try {
+        const payload = {
+          channel_id: currentChannel,
+          topic: selectedTopic.title,
+          year_week: currentWeek,
+          content_type: "flagship"
+        };
+        const res = await fetch("/api/pipeline/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if(!res.ok) throw new Error("Initialization request failed.");
+        const data = await res.json();
+        showToast("Episode production initiated successfully!");
+        
+        // Reload list and switch to production wall
+        await loadJobs();
+        switchWall("production");
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        initBtn.removeAttribute("disabled");
+        initBtn.innerHTML = `<i class="ti ti-circle-plus"></i> Launch Selected Topic`;
+      }
+    }
+
+    // Load jobs filtering by channel and week
+    async function loadJobs() {
+      const listEl = document.getElementById("jobList");
+      listEl.innerHTML = `<div class="empty-state"><i class="ti ti-loader-quarter ti-spin"></i><p>Scanning files...</p></div>`;
+
+      try {
+        // Resolve Channel Code to Numeric Mapping
+        const ch = channels.find(c => c.id === currentChannel);
+        const url = `/api/pipeline/jobs?channel_id=${ch.val}&year_week=${currentWeek}`;
+        
+        const res = await fetch(url);
+        if(!res.ok) throw new Error("Failed to scan week files.");
+        const jobs = await res.json();
+        
+        listEl.innerHTML = "";
+        
+        if(jobs.length === 0) {
+          listEl.innerHTML = `<div class="empty-state"><i class="ti ti-folder-open"></i><p>No active episode runs for this week.</p></div>`;
+          resetRightPanel();
+          return;
+        }
+
+        jobs.forEach(j => {
+          const card = document.createElement("div");
+          card.className = `job-card ${selectedJob && selectedJob.job_id === j.job_id ? 'active' : ''}`;
+          card.onclick = () => selectJob(j, card);
+
+          const timeStr = new Date(j.updated_at * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          
+          card.innerHTML = `
+            <div class="job-card-header">
+              <span class="job-code">${j.job_code || j.job_id.substring(0, 15)}</span>
+              <span class="job-status-badge ${j.status}">${j.status.replace('_', ' ')}</span>
+            </div>
+            <div class="job-topic">${j.topic}</div>
+            <div class="job-progress">
+              <div class="job-progress-bar" style="width: ${j.progress_pct}%"></div>
+            </div>
+            <div class="job-time"><i class="ti ti-clock"></i> Active: ${timeStr}</div>
+          `;
+          listEl.appendChild(card);
+        });
+
+        // Re-select previously selected job if still present
+        if(selectedJob) {
+          const matching = jobs.find(j => j.job_id === selectedJob.job_id);
+          if(matching) {
+            selectJob(matching, document.querySelector(`.job-card.active`));
+          }
+        }
+      } catch (err) {
+        listEl.innerHTML = `<p style="color: var(--status-failed); font-size: 12px; text-align: center; margin-top: 20px;">Error scanning database.</p>`;
+      }
+    }
+
+    function resetRightPanel() {
+      document.getElementById("scriptEditor").innerHTML = `
+        <div class="empty-state">
+          <i class="ti ti-click"></i>
+          <p>Select a running or pending episode from the left sidebar to view/edit the script.</p>
+        </div>
+      `;
+      document.getElementById("assetGrid").innerHTML = "";
+      document.getElementById("assetCount").textContent = "0 Assets";
+      
+      document.getElementById("approveJobBtn").setAttribute("disabled", "true");
+      document.getElementById("rejectJobBtn").setAttribute("disabled", "true");
+      
+      // Reset review wall placeholder
+      document.getElementById("videoContainer").innerHTML = `
+        <div class="video-placeholder">
+          <i class="ti ti-video-off"></i>
+          <p>No final video generated for this week's batch.</p>
+        </div>
+      `;
+      document.getElementById("shortsGrid").innerHTML = "";
+      
+      document.getElementById("seoTitle").value = "";
+      document.getElementById("seoDesc").value = "";
+      document.getElementById("seoTags").value = "";
+    }
+
+    // Select job details
+    async function selectJob(job, cardEl) {
+      if(!job) return;
+      document.querySelectorAll(".job-card").forEach(c => c.classList.remove("active"));
+      if(cardEl) cardEl.classList.add("active");
+
+      selectedJob = job;
+
+      // Enable approval & reject controls based on status
+      const appBtn = document.getElementById("approveJobBtn");
+      const rejBtn = document.getElementById("rejectJobBtn");
+
+      if(job.status === "pending_approval" || job.status === "pending") {
+        appBtn.removeAttribute("disabled");
+        rejBtn.removeAttribute("disabled");
+      } else {
+        appBtn.setAttribute("disabled", "true");
+        rejBtn.setAttribute("disabled", "true");
+      }
+
+      loadJobScript(job.job_id);
+      loadJobAssets(job.job_id);
+    }
+
+    // Fetch and render script synthesis details
+    async function loadJobScript(jobId) {
+      const editorEl = document.getElementById("scriptEditor");
+      editorEl.innerHTML = `<div class="empty-state"><i class="ti ti-loader-quarter ti-spin"></i><p>Compiling master script segments...</p></div>`;
+
+      try {
+        const res = await fetch(`/api/pipeline/brief/${jobId}`);
+        if(!res.ok) throw new Error("Narrative script has not been synthesized yet.");
+        const brief = await res.json();
+        
+        activeBriefData = brief;
+        const sections = brief.section_4_master_script?.sections || [];
+
+        if(sections.length === 0) {
+          editorEl.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 20px 0;">No scene scripts generated in intelligence brief.</p>`;
+          return;
+        }
+
+        editorEl.innerHTML = "";
+        sections.forEach((sec, idx) => {
+          const type = sec.scene_type || "body";
+          const secDiv = document.createElement("div");
+          secDiv.className = "script-section";
+          
+          secDiv.innerHTML = `
+            <div class="script-section-header" onclick="toggleSection(${idx})">
+              <div class="script-section-title">
+                <span class="${type}">${type}</span>
+                Scene ${idx + 1}: ${sec.visual_gen_prompt?.scene_description ? sec.visual_gen_prompt.scene_description.substring(0, 45) + '...' : 'Narrative segment'}
+              </div>
+              <i class="ti ti-chevron-down" id="arrow-${idx}"></i>
+            </div>
+            <div class="script-section-body" id="body-${idx}" style="display: ${idx === 0 ? 'flex' : 'none'};">
+              <div class="form-group">
+                <label>Voiceover Script (Narration)</label>
+                <textarea id="narration-${idx}" oninput="updateBriefField(${idx}, 'narration', this.value)">${sec.narration || ''}</textarea>
+              </div>
+              <div class="form-group">
+                <label>ComfyUI Graphic Prompt</label>
+                <textarea id="prompt-${idx}" oninput="updateBriefField(${idx}, 'comfyui_prompt', this.value)">${sec.visual_gen_prompt?.comfyui_prompt || ''}</textarea>
+              </div>
+              <div class="script-actions">
+                <button class="btn" onclick="openRewriteModal(${idx}, 'narration')">
+                  <i class="ti ti-wand"></i> AI Rewrite
+                </button>
+              </div>
+            </div>
+          `;
+          editorEl.appendChild(secDiv);
+        });
+
+      } catch (err) {
+        editorEl.innerHTML = `<p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;"><i class="ti ti-circle-alert"></i> ${err.message}</p>`;
+      }
+    }
+
+    // Toggle script section accordion
+    function toggleSection(idx) {
+      const body = document.getElementById(`body-${idx}`);
+      const arrow = document.getElementById(`arrow-${idx}`);
+      if(body.style.display === "none") {
+        body.style.display = "flex";
+        arrow.className = "ti ti-chevron-up";
+      } else {
+        body.style.display = "none";
+        arrow.className = "ti ti-chevron-down";
+      }
+    }
+
+    // Update the local brief data fields
+    function updateBriefField(idx, field, value) {
+      if(!activeBriefData || !activeBriefData.section_4_master_script?.sections[idx]) return;
+      const sec = activeBriefData.section_4_master_script.sections[idx];
+      if(field === 'narration') {
+        sec.narration = value;
+      } else if(field === 'comfyui_prompt') {
+        if(!sec.visual_gen_prompt) sec.visual_gen_prompt = {};
+        sec.visual_gen_prompt.comfyui_prompt = value;
+      }
+    }
+
+    // Open rewrite instruction modal
+    function openRewriteModal(idx) {
+      activeSectionIndex = idx;
+      document.getElementById("rewriteInstruction").value = "";
+      document.getElementById("rewriteOverlay").classList.add("active");
+    }
+
+    function closeRewriteModal() {
+      document.getElementById("rewriteOverlay").classList.remove("active");
+    }
+
+    // Submit Ollama edit
+    async function submitRewrite() {
+      const instruction = document.getElementById("rewriteInstruction").value;
+      if(!instruction) return;
+      
+      const runBtn = document.getElementById("runRewriteBtn");
+      runBtn.setAttribute("disabled", "true");
+      runBtn.innerHTML = `<i class="ti ti-loader-quarter ti-spin"></i> Rewriting...`;
+
+      try {
+        const textVal = document.getElementById(`narration-${activeSectionIndex}`).value;
+        const res = await fetch("/api/pipeline/regenerate-field", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            field_content: textVal,
+            instruction: instruction
+          })
+        });
+
+        if(!res.ok) throw new Error("AI engine failed to rewrite.");
+        const data = await res.json();
+        
+        // Update both UI and local model state
+        document.getElementById(`narration-${activeSectionIndex}`).value = data.result;
+        updateBriefField(activeSectionIndex, 'narration', data.result);
+        
+        showToast("Script line rewritten successfully!");
+        closeRewriteModal();
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        runBtn.removeAttribute("disabled");
+        runBtn.innerHTML = "Apply Magic";
+      }
+    }
+
+    // Approve the pipeline to Phase 2 rendering
+    async function approveJob() {
+      if(!selectedJob || !activeBriefData) return;
+      const btn = document.getElementById("approveJobBtn");
+      btn.setAttribute("disabled", "true");
+      btn.innerHTML = `<i class="ti ti-loader-quarter ti-spin"></i> Spawning GPU processes...`;
+
+      try {
+        const res = await fetch(`/api/pipeline/approve/${selectedJob.job_id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(activeBriefData) // Send edited intelligence brief JSON
+        });
+
+        if(!res.ok) throw new Error("Approval submission failed.");
+        showToast("GPU synthesis scheduled. Switching to rendering!");
+        
+        // Reload statuses
+        loadJobs();
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.removeAttribute("disabled");
+        btn.innerHTML = `<i class="ti ti-circle-check"></i> Approve & Generate Assets`;
+      }
+    }
+
+    // Reject Job
+    async function rejectJob() {
+      if(!selectedJob) return;
+      if(!confirm("Are you sure you want to stop and reject this batch?")) return;
+
+      try {
+        const res = await fetch(`/api/pipeline/reject/${selectedJob.job_id}`, { method: "POST" });
+        if(!res.ok) throw new Error("Reject request failed.");
+        showToast("Batch aborted.");
+        loadJobs();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    // Load connected assets
+    async function loadJobAssets(jobId) {
+      const gridEl = document.getElementById("assetGrid");
+      const countEl = document.getElementById("assetCount");
+      
+      gridEl.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="ti ti-loader-quarter ti-spin"></i><p>Polling media directory...</p></div>`;
+      
+      try {
+        const res = await fetch(`/api/pipeline/assets/${jobId}`);
+        if(!res.ok) throw new Error("No assets folder found.");
+        const assets = await res.json();
+        
+        gridEl.innerHTML = "";
+        countEl.textContent = `${assets.length} Assets`;
+
+        if(assets.length === 0) {
+          gridEl.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="ti ti-photo-off"></i><p>No media files synthesized yet.</p></div>`;
+          return;
+        }
+
+        // Separate shorts and final videos
+        const finalVideo = assets.find(a => a.name.includes("video_final.mp4") || a.name.includes("story_") && a.name.endsWith(".mp4"));
+        const subtitleShorts = assets.filter(a => a.name.includes("clip_") || a.path.includes("shorts/"));
+        
+        // Render in review wall if final video exists
+        const vidContainer = document.getElementById("videoContainer");
+        if(finalVideo) {
+          vidContainer.innerHTML = `<video controls src="${finalVideo.url}"></video>`;
+        } else {
+          vidContainer.innerHTML = `
+            <div class="video-placeholder">
+              <i class="ti ti-video-off"></i>
+              <p>No final video generated for this week's batch.</p>
+            </div>
+          `;
+        }
+
+        // Render Shorts in review wall
+        const shortsGrid = document.getElementById("shortsGrid");
+        shortsGrid.innerHTML = "";
+        if(subtitleShorts.length > 0) {
+          subtitleShorts.forEach(s => {
+            const card = document.createElement("div");
+            card.className = "asset-item";
+            card.innerHTML = `
+              <div class="asset-thumb" onclick="playMedia('${s.url}', 'video')"><i class="ti ti-player-play"></i></div>
+              <div class="asset-name">${s.name}</div>
+            `;
+            shortsGrid.appendChild(card);
+          });
+        } else {
+          shortsGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><p>No vertical micro-clips generated.</p></div>`;
+        }
+
+        // Load SEO recommended data if metadata exists (e.g. from intelligence brief)
+        const seoTitle = document.getElementById("seoTitle");
+        const seoDesc = document.getElementById("seoDesc");
+        const seoTags = document.getElementById("seoTags");
+
+        if(activeBriefData) {
+          const metadata = activeBriefData.section_5_seo_metadata || {};
+          seoTitle.value = metadata.recommended_title || activeBriefData.topic || "";
+          seoDesc.value = metadata.recommended_description || "";
+          seoTags.value = Array.isArray(metadata.recommended_tags) ? metadata.recommended_tags.join(", ") : (metadata.recommended_tags || "");
+        }
+
+        // Render general asset board grid
+        assets.forEach(a => {
+          const item = document.createElement("div");
+          item.className = "asset-item";
+          
+          let icon = '<i class="ti ti-file"></i>';
+          let onclick = `window.open('${a.url}')`;
+          
+          if(a.type === 'image') {
+            icon = `<img src="${a.url}" alt="${a.name}">`;
+            onclick = `previewImage('${a.url}')`;
+          } else if(a.type === 'video') {
+            icon = '<i class="ti ti-video"></i>';
+            onclick = `playMedia('${a.url}', 'video')`;
+          } else if(a.type === 'audio') {
+            icon = '<i class="ti ti-music"></i>';
+            onclick = `playMedia('${a.url}', 'audio')`;
+          }
+
+          item.innerHTML = `
+            <div class="asset-thumb" onclick="${onclick}">${icon}</div>
+            <div class="asset-name" title="${a.name}">${a.name}</div>
+          `;
+          gridEl.appendChild(item);
+        });
+
+      } catch (err) {
+        gridEl.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><p>No active directories found.</p></div>`;
+        countEl.textContent = "0 Assets";
+      }
+    }
+
+    // Media Modal previews
+    function previewImage(url) {
+      const modal = document.createElement("div");
+      modal.className = "overlay active";
+      modal.onclick = () => modal.remove();
+      modal.innerHTML = `
+        <div style="max-width: 90%; max-height: 90%;">
+          <img src="${url}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px; border: 1px solid var(--panel-border);">
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function playMedia(url, type) {
+      const modal = document.createElement("div");
+      modal.className = "overlay active";
+      modal.onclick = (e) => { if(e.target === modal) modal.remove(); };
+      
+      let player = `<video controls autoplay src="${url}" style="width: 100%; max-height: 70vh; border-radius: 8px;"></video>`;
+      if(type === 'audio') {
+        player = `<audio controls autoplay src="${url}" style="width: 100%; margin: 40px 0;"></audio>`;
+      }
+      
+      modal.innerHTML = `
+        <div class="modal" style="max-width: 800px;">
+          <div class="modal-close" onclick="this.closest('.overlay').remove()"><i class="ti ti-x"></i></div>
+          <h3>Media Player</h3>
+          ${player}
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // Copying helpers
+    function copyToClipboard(id) {
+      const el = document.getElementById(id);
+      el.select();
+      document.execCommand("copy");
+      showToast("Copied to clipboard!");
+    }
+
+    // Publish/Post video
+    async function publishVideo(mode) {
+      if(!selectedJob) {
+        showToast("No active episode loaded.", "error");
+        return;
+      }
+      
+      try {
+        const payload = {
+          job_id: selectedJob.job_id,
+          title: document.getElementById("seoTitle").value,
+          description: document.getElementById("seoDesc").value
+        };
+
+        const res = await fetch("/api/publish/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if(!res.ok) throw new Error("Publishing request failed.");
+        showToast("Publish process triggered successfully!");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    // Schedule modal controllers
+    function openScheduleModal() {
+      document.getElementById("scheduleOverlay").classList.add("active");
+    }
+
+    function closeScheduleModal() {
+      document.getElementById("scheduleOverlay").classList.remove("active");
+    }
+
+    async function submitSchedule() {
+      const timeVal = document.getElementById("scheduleTime").value;
+      if(!timeVal) {
+        showToast("Please select a date and time.", "error");
+        return;
+      }
+
+      try {
+        const payload = {
+          job_id: selectedJob.job_id,
+          publish_time: timeVal,
+          title: document.getElementById("seoTitle").value,
+          description: document.getElementById("seoDesc").value
+        };
+
+        const res = await fetch("/api/publish/schedule", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if(!res.ok) throw new Error("Failed to schedule publish queue.");
+        showToast("Episode successfully queued in release scheduler!");
+        closeScheduleModal();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+  </script>
+</body>
+</html>

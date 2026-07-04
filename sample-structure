@@ -1,0 +1,276 @@
+# Full Training Project Repository Manifest
+
+This document outlines the complete repository manifest and file structure for the Training Project, covering all directories and files.
+
+| Code | Level | Type | Name | Purpose | Full Path | Parent Code | Parent Path | Top Level Area | Descendant Count |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| A | 0 | Folder | Training Project | Training Project container. | Training Project/ | | | Training Project/ | 0 |
+| A1 | 1 | File | README.md | Entry point, navigation, operating rules. | README.md | A | Training Project/ | README.md | 0 |
+| A2 | 1 | File | CHANGELOG.md | Version history and material changes. | CHANGELOG.md | A | Training Project/ | CHANGELOG.md | 0 |
+| A3 | 1 | File | CONTRIBUTING.md | Contribution and review instructions. | CONTRIBUTING.md | A | Training Project/ | CONTRIBUTING.md | 0 |
+| A4 | 1 | File | LICENSE.md | Usage rights and restrictions. | LICENSE.md | A | Training Project/ | LICENSE.md | 0 |
+| A5 | 1 | File | CODEOWNERS | Required reviewers and ownership. | CODEOWNERS | A | Training Project/ | CODEOWNERS | 0 |
+| A6 | 1 | File | .gitignore | Exclude generated/local artifacts. | .gitignore | A | Training Project/ | .gitignore | 0 |
+| A7 | 1 | File | .env.example | Sample environment variables. | .env.example | A | Training Project/ | .env.example | 0 |
+| A8 | 1 | File | requirements.txt | Python dependency and package control. | requirements.txt | A | Training Project/ | requirements.txt | 0 |
+| A9 | 1 | File | pyproject.toml | Python dependency and package control. | pyproject.toml | A | Training Project/ | pyproject.toml | 0 |
+| A10 | 1 | File | Makefile | Common build/test commands. | Makefile | A | Training Project/ | Makefile | 0 |
+| A11 | 1 | Folder | docs | System documentation and standards. | docs/ | A | Training Project/ | docs/ | 121 |
+| A11.1 | 2 | Folder | 00-overview | System documentation and standards. | docs/00-overview/ | A11 | docs/ | docs/ | 0 |
+| A11.1.1 | 3 | File | system-architecture.md | Architecture, components, and design rationale. | docs/00-overview/system-architecture.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.2 | 3 | File | technology-stack.md | Approved tools, APIs, models, libraries. | docs/00-overview/technology-stack.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.3 | 3 | File | project-charter.md | Purpose, scope, stakeholders, outcomes. | docs/00-overview/project-charter.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.4 | 3 | File | operating-model.md | Quarterly operating approach and roles. | docs/00-overview/operating-model.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.5 | 3 | File | glossary.md | Defined terms and abbreviations. | docs/00-overview/glossary.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.6 | 3 | File | faq.md | Faq artifact for project operation. | docs/00-overview/faq.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.7 | 3 | File | stakeholder-summary.md | Stakeholder summary and contact mapping. | docs/00-overview/stakeholder-summary.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.1.8 | 3 | File | navigation-map.md | Navigation map for users and maintainers. | docs/00-overview/navigation-map.md | A11.1 | docs/00-overview/ | docs/ | 0 |
+| A11.2 | 2 | Folder | 01-domains | System documentation and standards. | docs/01-domains/ | A11 | docs/ | docs/ | 8 |
+| A11.2.1 | 3 | File | domain-overview.md | Domain taxonomy, scope, and mapping. | docs/01-domains/domain-overview.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.2 | 3 | File | ai-in-audit.md | Domain taxonomy, scope, and mapping. | docs/01-domains/ai-in-audit.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.3 | 3 | File | risk-and-controls.md | Domain taxonomy, scope, and mapping. | docs/01-domains/risk-and-controls.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.4 | 3 | File | regulations.md | Domain taxonomy, scope, and mapping. | docs/01-domains/regulations.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.5 | 3 | File | domain-taxonomy.md | Domain taxonomy, scope, and mapping. | docs/01-domains/domain-taxonomy.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.6 | 3 | File | domain-to-content-map.md | Domain taxonomy, scope, and mapping. | docs/01-domains/domain-to-content-map.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.7 | 3 | File | domain-refresh-rules.md | Domain taxonomy, scope, and mapping. | docs/01-domains/domain-refresh-rules.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.2.8 | 3 | File | domain-owner-guide.md | Domain taxonomy, scope, and mapping. | docs/01-domains/domain-owner-guide.md | A11.2 | docs/01-domains/ | docs/ | 0 |
+| A11.3 | 2 | Folder | 02-content-tiers | System documentation and standards. | docs/02-content-tiers/ | A11 | docs/ | docs/ | 10 |
+| A11.3.1 | 3 | File | content-strategy.md | Content Strategy artifact for project operation. | docs/02-content-tiers/content-strategy.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.2 | 3 | File | pulse-template.md | Reusable standard format for this artifact. | docs/02-content-tiers/pulse-template.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.3 | 3 | File | spotlight-template.md | Reusable standard format for this artifact. | docs/02-content-tiers/spotlight-template.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.4 | 3 | File | academy-template.md | Reusable standard format for this artifact. | docs/02-content-tiers/academy-template.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.5 | 3 | File | learning-objectives-framework.md | Learning Objectives Framework artifact for project operation. | docs/02-content-tiers/learning-objectives-framework.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.6 | 3 | File | content-packaging-standards.md | Content Packaging Standards artifact for project operation. | docs/02-content-tiers/content-packaging-standards.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.7 | 3 | File | style-guide.md | Tone, vocabulary, and visual standards. | docs/02-content-tiers/style-guide.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.8 | 3 | File | accessibility-standards.md | Accessibility requirements and evidence. | docs/02-content-tiers/accessibility-standards.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.9 | 3 | File | visual-branding.md | Visual brand standards. | docs/02-content-tiers/visual-branding.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.3.10| 3 | File | tone-and-language.md | Language and tone rules. | docs/02-content-tiers/tone-and-language.md | A11.3 | docs/02-content-tiers/ | docs/ | 0 |
+| A11.4 | 2 | Folder | 03-pipeline | System documentation and standards. | docs/03-pipeline/ | A11 | docs/ | docs/ | 10 |
+| A11.4.1 | 3 | File | pipeline-overview.md | Pipeline phase guidance and controls. | docs/03-pipeline/pipeline-overview.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.2 | 3 | File | phase-1-discover.md | Pipeline phase guidance and controls. | docs/03-pipeline/phase-1-discover.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.3 | 3 | File | phase-2-design.md | Pipeline phase guidance and controls. | docs/03-pipeline/phase-2-design.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.4 | 3 | File | phase-3-produce.md | Pipeline phase guidance and controls. | docs/03-pipeline/phase-3-produce.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.5 | 3 | File | phase-4-deliver.md | Pipeline phase guidance and controls. | docs/03-pipeline/phase-4-deliver.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.6 | 3 | File | phase-5-reflect.md | Pipeline phase guidance and controls. | docs/03-pipeline/phase-5-reflect.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.7 | 3 | File | phase-gates.md | Pipeline phase guidance and controls. | docs/03-pipeline/phase-gates.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.8 | 3 | File | pipeline-sla.md | Pipeline phase guidance and controls. | docs/03-pipeline/pipeline-sla.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.9 | 3 | File | exception-handling.md | Pipeline phase guidance and controls. | docs/03-pipeline/exception-handling.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.4.10| 3 | File | pipeline-controls.md | Pipeline phase guidance and controls. | docs/03-pipeline/pipeline-controls.md | A11.4 | docs/03-pipeline/ | docs/ | 0 |
+| A11.5 | 2 | Folder | 04-agents | System documentation and standards. | docs/04-agents/ | A11 | docs/ | docs/ | 11 |
+| A11.5.1 | 3 | File | agent-architecture.md | Architecture, components, and design rationale. | docs/04-agents/agent-architecture.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.2 | 3 | File | agent-operating-model.md | Quarterly operating approach and roles. | docs/04-agents/agent-operating-model.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.3 | 3 | File | research-agent.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/research-agent.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.4 | 3 | File | analyst-agent.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/analyst-agent.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.5 | 3 | File | curriculum-agent.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/curriculum-agent.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.6 | 3 | File | content-writer-agent.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/content-writer-agent.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.7 | 3 | File | media-producer-agent.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/media-producer-agent.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.8 | 3 | File | orchestrator-agent.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/orchestrator-agent.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.9 | 3 | File | prompt-governance.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/prompt-governance.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.10| 3 | File | agent-evaluation-framework.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/agent-evaluation-framework.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.5.11| 3 | File | agent-failure-modes.md | Agent design, prompt, role, or behavior guidance. | docs/04-agents/agent-failure-modes.md | A11.5 | docs/04-agents/ | docs/ | 0 |
+| A11.6 | 2 | Folder | 05-python-layer | System documentation and standards. | docs/05-python-layer/ | A11 | docs/ | docs/ | 10 |
+| A11.6.1 | 3 | File | python-overview.md | Executable Python module or test. | docs/05-python-layer/python-overview.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.2 | 3 | File | slide-builder.md | Executable Python module or test. | docs/05-python-layer/slide-builder.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.3 | 3 | File | image-generator.md | Executable Python module or test. | docs/05-python-layer/image-generator.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.4 | 3 | File | audio-generator.md | Executable Python module or test. | docs/05-python-layer/audio-generator.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.5 | 3 | File | video-assembler.md | Executable Python module or test. | docs/05-python-layer/video-assembler.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.6 | 3 | File | delivery-engine.md | Executable Python module or test. | docs/05-python-layer/delivery-engine.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.7 | 3 | File | dependency-management.md | Executable Python module or test. | docs/05-python-layer/dependency-management.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.8 | 3 | File | logging-and-monitoring.md | Executable Python module or test. | docs/05-python-layer/logging-and-monitoring.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.9 | 3 | File | local-development.md | Executable Python module or test. | docs/05-python-layer/local-development.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.6.10| 3 | File | error-handling.md | Executable Python module or test. | docs/05-python-layer/error-handling.md | A11.6 | docs/05-python-layer/ | docs/ | 0 |
+| A11.7 | 2 | Folder | 06-research-vault | System documentation and standards. | docs/06-research-vault/ | A11 | docs/ | docs/ | 9 |
+| A11.7.1 | 3 | File | file-structure.md | File Structure artifact for project operation. | docs/06-research-vault/file-structure.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.2 | 3 | File | research-methodology.md | Chronological operating or evidence log. | docs/06-research-vault/research-methodology.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.3 | 3 | File | source-standards.md | Source standard, index, or verification evidence. | docs/06-research-vault/source-standards.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.4 | 3 | File | source-verification.md | Source standard, index, or verification evidence. | docs/06-research-vault/source-verification.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.5 | 3 | File | token-budgets.md | Context/token budget guidance. | docs/06-research-vault/token-budgets.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.6 | 3 | File | watch-list-protocol.md | Trigger monitoring and response items. | docs/06-research-vault/watch-list-protocol.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.7 | 3 | File | research-refresh-model.md | Periodic update record. | docs/06-research-vault/research-refresh-model.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.8 | 3 | File | research-archive-policy.md | Archive index or retention evidence. | docs/06-research-vault/research-archive-policy.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.7.9 | 3 | File | citation-standards.md | Citation standards or review evidence. | docs/06-research-vault/citation-standards.md | A11.7 | docs/06-research-vault/ | docs/ | 0 |
+| A11.8 | 2 | Folder | 07-handoff-specs | System documentation and standards. | docs/07-handoff-specs/ | A11 | docs/ | docs/ | 9 |
+| A11.8.1 | 3 | File | handoff-overview.md | Structured contract for automation handoff. | docs/07-handoff-specs/handoff-overview.md | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.2 | 3 | File | slide-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/slide-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.3 | 3 | File | image-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/image-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.4 | 3 | File | audio-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/audio-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.5 | 3 | File | video-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/video-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.6 | 3 | File | delivery-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/delivery-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.7 | 3 | File | analytics-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/analytics-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.8 | 3 | File | error-spec.json | Structured contract for automation handoff. | docs/07-handoff-specs/error-spec.json | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.8.9 | 3 | File | schema-versioning.md | Structured contract for automation handoff. | docs/07-handoff-specs/schema-versioning.md | A11.8 | docs/07-handoff-specs/ | docs/ | 0 |
+| A11.9 | 2 | Folder | 08-governance | System documentation and standards. | docs/08-governance/ | A11 | docs/ | docs/ | 9 |
+| A11.9.1 | 3 | File | raci-matrix.md | Roles, accountability, consultation, and information. | docs/08-governance/raci-matrix.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.2 | 3 | File | oversight-cadence.md | Meeting and review rhythm. | docs/08-governance/oversight-cadence.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.3 | 3 | File | escalation-triggers.md | Escalation criteria and path. | docs/08-governance/escalation-triggers.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.4 | 3 | File | quality-framework.md | Quality control requirements/evidence. | docs/08-governance/quality-framework.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.5 | 3 | File | budget-model.md | Cost model and tracking method. | docs/08-governance/budget-model.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.6 | 3 | File | approval-authority.md | Approval evidence and decision record. | docs/08-governance/approval-authority.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.7 | 3 | File | decision-rights.md | Planning and management decision control. | docs/08-governance/decision-rights.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.8 | 3 | File | risk-register.md | Risk register, risk process, or issue linkage. | docs/08-governance/risk-register.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.9.9 | 3 | File | issue-management.md | Issue intake, triage, and tracking. | docs/08-governance/issue-management.md | A11.9 | docs/08-governance/ | docs/ | 0 |
+| A11.10 | 2 | Folder | 09-analytics | System documentation and standards. | docs/09-analytics/ | A11 | docs/ | docs/ | 8 |
+| A11.10.1 | 3 | File | kpi-definitions.md | Metric definition, target, or rationale. | docs/09-analytics/kpi-definitions.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.2 | 3 | File | benchmarks.md | Metric definition, target, or rationale. | docs/09-analytics/benchmarks.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.3 | 3 | File | reporting-cadence.md | Meeting and review rhythm. | docs/09-analytics/reporting-cadence.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.4 | 3 | File | data-dictionary.md | Field definitions and data lineage. | docs/09-analytics/data-dictionary.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.5 | 3 | File | event-tracking-plan.md | Analytics event capture plan. | docs/09-analytics/event-tracking-plan.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.6 | 3 | File | dashboard-spec.md | Structured contract for automation handoff. | docs/09-analytics/dashboard-spec.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.7 | 3 | File | survey-question-bank.md | Learner feedback capture/analysis. | docs/09-analytics/survey-question-bank.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.10.8 | 3 | File | impact-measurement.md | Learning effectiveness measurement. | docs/09-analytics/impact-measurement.md | A11.10 | docs/09-analytics/ | docs/ | 0 |
+| A11.11 | 2 | Folder | 10-security-compliance | System documentation and standards. | docs/10-security-compliance/ | A11 | docs/ | docs/ | 9 |
+| A11.11.1 | 3 | File | data-classification.md | Security, privacy, or access control standard. | docs/10-security-compliance/data-classification.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.2 | 3 | File | pii-handling.md | Security, privacy, or access control standard. | docs/10-security-compliance/pii-handling.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.3 | 3 | File | model-risk-considerations.md | Risk register, risk process, or issue linkage. | docs/10-security-compliance/model-risk-considerations.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.4 | 3 | File | approved-tools-and-restrictions.md | Security, privacy, or access control standard. | docs/10-security-compliance/approved-tools-and-restrictions.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.5 | 3 | File | access-control-model.md | Security, privacy, or access control standard. | docs/10-security-compliance/access-control-model.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.6 | 3 | File | secrets-management.md | Security, privacy, or access control standard. | docs/10-security-compliance/secrets-management.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.7 | 3 | File | retention-and-archiving.md | Security, privacy, or access control standard. | docs/10-security-compliance/retention-and-archiving.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.8 | 3 | File | audit-trail-requirements.md | Security, privacy, or access control standard. | docs/10-security-compliance/audit-trail-requirements.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.11.9 | 3 | File | third-party-risk.md | Risk register, risk process, or issue linkage. | docs/10-security-compliance/third-party-risk.md | A11.11 | docs/10-security-compliance/ | docs/ | 0 |
+| A11.12 | 2 | Folder | 11-deployment | System documentation and standards. | docs/11-deployment/ | A11 | docs/ | docs/ | 8 |
+| A11.12.1 | 3 | File | local-setup.md | Deployment, release, or recovery procedure. | docs/11-deployment/local-setup.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.2 | 3 | File | environment-variables.md | Deployment, release, or recovery procedure. | docs/11-deployment/environment-variables.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.3 | 3 | File | ci-cd-overview.md | Deployment, release, or recovery procedure. | docs/11-deployment/ci-cd-overview.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.4 | 3 | File | release-process.md | Deployment, release, or recovery procedure. | docs/11-deployment/release-process.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.5 | 3 | File | rollback-procedure.md | Deployment, release, or recovery procedure. | docs/11-deployment/rollback-procedure.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.6 | 3 | File | production-readiness-checklist.md | Deployment, release, or recovery procedure. | docs/11-deployment/production-readiness-checklist.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.7 | 3 | File | support-model.md | Deployment, release, or recovery procedure. | docs/11-deployment/support-model.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A11.12.8 | 3 | File | deployment-architecture.md | Architecture, components, and design rationale. | docs/11-deployment/deployment-architecture.md | A11.12 | docs/11-deployment/ | docs/ | 0 |
+| A12 | 1 | Folder | runbooks | Step-by-step operating procedures. | runbooks/ | A | Training Project/ | runbooks/ | 20 |
+| A12.1 | 2 | File | quarterly-kickoff.md | Quarterly Kickoff artifact for project operation. | runbooks/quarterly-kickoff.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.2 | 2 | File | weekly-pulse-production.md | One-minute microlearning content. | runbooks/weekly-pulse-production.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.3 | 2 | File | monthly-spotlight-production.md | Two-to-ten minute focused lesson. | runbooks/monthly-spotlight-production.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.4 | 2 | File | academy-session-production.md | Long-form session content. | runbooks/academy-session-production.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.5 | 2 | File | monthly-refresh-scan.md | Periodic update record. | runbooks/monthly-refresh-scan.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.6 | 2 | File | weekly-micro-check.md | Weekly Micro Check artifact for project operation. | runbooks/weekly-micro-check.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.7 | 2 | File | content-review-approval.md | Approval evidence and decision record. | runbooks/content-review-approval.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.8 | 2 | File | watch-list-trigger-response.md | Trigger monitoring and response items. | runbooks/watch-list-trigger-response.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.9 | 2 | File | agent-failure-recovery.md | Agent design, prompt, role, or behavior guidance. | runbooks/agent-failure-recovery.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.10 | 2 | File | emergency-content-swap.md | Emergency Content Swap artifact for project operation. | runbooks/emergency-content-swap.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.11 | 2 | File | quarterly-retrospective.md | Structured contract for automation handoff. | runbooks/quarterly-retrospective.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.12 | 2 | File | release-runbook.md | Deployment, release, or recovery procedure. | runbooks/release-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.13 | 2 | File | incident-response-runbook.md | Incident Response Runbook artifact for project operation. | runbooks/incident-response-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.14 | 2 | File | access-review-runbook.md | Access Review Runbook artifact for project operation. | runbooks/access-review-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.15 | 2 | File | archive-quarter-runbook.md | Archive index or retention evidence. | runbooks/archive-quarter-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.16 | 2 | File | onboarding-new-contributor.md | Onboarding New Contributor artifact for project operation. | runbooks/onboarding-new-contributor.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.17 | 2 | File | source-exception-runbook.md | Exception handling and escalation evidence. | runbooks/source-exception-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.18 | 2 | File | prompt-change-runbook.md | Production prompt or prompt governance artifact. | runbooks/prompt-change-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.19 | 2 | File | dashboard-refresh-runbook.md | Dashboard artifact, spec, or code. | runbooks/dashboard-refresh-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A12.20 | 2 | File | delivery-failure-runbook.md | Packaging and delivery artifact. | runbooks/delivery-failure-runbook.md | A12 | runbooks/ | runbooks/ | 0 |
+| A13 | 1 | Folder | templates | Reusable blank forms and schema templates. | templates/ | A | Training Project/ | templates/ | 44 |
+| A13.1 | 2 | Folder | research | Reusable blank forms and schema templates. | templates/research/ | A13 | templates/ | templates/ | 10 |
+| A13.1.1 | 3 | File | master-brief-template.md | Reusable standard format for this artifact. | templates/research/master-brief-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.2 | 3 | File | topic-map-template.md | Reusable standard format for this artifact. | templates/research/topic-map-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.3 | 3 | File | source-index-template.md | Reusable standard format for this artifact. | templates/research/source-index-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.4 | 3 | File | deep-notes-template.md | Reusable standard format for this artifact. | templates/research/deep-notes-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.5 | 3 | File | watch-list-template.md | Reusable standard format for this artifact. | templates/research/watch-list-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.6 | 3 | File | monthly-refresh-template.md | Reusable standard format for this artifact. | templates/research/monthly-refresh-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.7 | 3 | File | weekly-pulse-log-template.md | Reusable standard format for this artifact. | templates/research/weekly-pulse-log-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.8 | 3 | File | source-assessment-template.md | Reusable standard format for this artifact. | templates/research/source-assessment-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.9 | 3 | File | research-archive-index-template.md | Reusable standard format for this artifact. | templates/research/research-archive-index-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.1.10| 3 | File | citation-template.md | Reusable standard format for this artifact. | templates/research/citation-template.md | A13.1 | templates/research/ | templates/ | 0 |
+| A13.2 | 2 | Folder | content | Reusable blank forms and schema templates. | templates/content/ | A13 | templates/ | templates/ | 12 |
+| A13.2.1 | 3 | File | pulse-script-template.md | Reusable standard format for this artifact. | templates/content/pulse-script-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.2 | 3 | File | spotlight-script-template.md | Reusable standard format for this artifact. | templates/content/spotlight-script-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.3 | 3 | File | academy-outline-template.md | Reusable standard format for this artifact. | templates/content/academy-outline-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.4 | 3 | File | speaking-notes-template.md | Reusable standard format for this artifact. | templates/content/speaking-notes-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.5 | 3 | File | handout-template.md | Reusable standard format for this artifact. | templates/content/handout-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.6 | 3 | File | quiz-template.md | Reusable standard format for this artifact. | templates/content/quiz-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.7 | 3 | File | learner-feedback-template.md | Reusable standard format for this artifact. | templates/content/learner-feedback-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.8 | 3 | File | facilitator-guide-template.md | Reusable standard format for this artifact. | templates/content/facilitator-guide-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.9 | 3 | File | communications-template.md | Reusable standard format for this artifact. | templates/content/communications-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.10| 3 | File | slide-storyboard-template.md | Reusable standard format for this artifact. | templates/content/slide-storyboard-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.2.11| 3 | File | microlearning-card-template.md | Reusable standard format for this artifact. | templates/content/microlearning-card-template.md | A13.2 | templates/content/ | templates/ | 0 |
+| A13.3 | 2 | Folder | specs | Reusable blank forms and schema templates. | templates/specs/ | A13 | templates/ | templates/ | 7 |
+| A13.3.1 | 3 | File | slide-spec-template.json | Reusable standard format for this artifact. | templates/specs/slide-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.3.2 | 3 | File | image-spec-template.json | Reusable standard format for this artifact. | templates/specs/image-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.3.3 | 3 | File | audio-spec-template.json | Reusable standard format for this artifact. | templates/specs/audio-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.3.4 | 3 | File | video-spec-template.json | Reusable standard format for this artifact. | templates/specs/video-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.3.5 | 3 | File | delivery-spec-template.json | Reusable standard format for this artifact. | templates/specs/delivery-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.3.6 | 3 | File | analytics-spec-template.json | Reusable standard format for this artifact. | templates/specs/analytics-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.3.7 | 3 | File | error-spec-template.json | Reusable standard format for this artifact. | templates/specs/error-spec-template.json | A13.3 | templates/specs/ | templates/ | 0 |
+| A13.4 | 2 | Folder | governance | Reusable blank forms and schema templates. | templates/governance/ | A13 | templates/ | templates/ | 6 |
+| A13.4.1 | 3 | File | approval-record-template.md | Reusable standard format for this artifact. | templates/governance/approval-record-template.md | A13.4 | templates/governance/ | templates/ | 0 |
+| A13.4.2 | 3 | File | decision-log-template.md | Reusable standard format for this artifact. | templates/governance/decision-log-template.md | A13.4 | templates/governance/ | templates/ | 0 |
+| A13.4.3 | 3 | File | risk-register-template.md | Reusable standard format for this artifact. | templates/governance/risk-register-template.md | A13.4 | templates/governance/ | templates/ | 0 |
+| A13.4.4 | 3 | File | issue-log-template.md | Reusable standard format for this artifact. | templates/governance/issue-log-template.md | A13.4 | templates/governance/ | templates/ | 0 |
+| A13.4.5 | 3 | File | retrospective-template.md | Reusable standard format for this artifact. | templates/governance/retrospective-template.md | A13.4 | templates/governance/ | templates/ | 0 |
+| A13.4.6 | 3 | File | raci-template.md | Reusable standard format for this artifact. | templates/governance/raci-template.md | A13.4 | templates/governance/ | templates/ | 0 |
+| A13.5 | 2 | Folder | quality | Reusable blank forms and schema templates. | templates/quality/ | A13 | templates/ | templates/ | 5 |
+| A13.5.1 | 3 | File | content-qc-checklist-template.md | Reusable standard format for this artifact. | templates/quality/content-qc-checklist-template.md | A13.5 | templates/quality/ | templates/ | 0 |
+| A13.5.2 | 3 | File | accessibility-checklist-template.md | Reusable standard format for this artifact. | templates/quality/accessibility-checklist-template.md | A13.5 | templates/quality/ | templates/ | 0 |
+| A13.5.3 | 3 | File | source-verification-checklist-template.md | Reusable standard format for this artifact. | templates/quality/source-verification-checklist-template.md | A13.5 | templates/quality/ | templates/ | 0 |
+| A13.5.4 | 3 | File | prompt-output-evaluation-template.md | Reusable standard format for this artifact. | templates/quality/prompt-output-evaluation-template.md | A13.5 | templates/quality/ | templates/ | 0 |
+| A13.5.5 | 3 | File | release-readiness-template.md | Reusable standard format for this artifact. | templates/quality/release-readiness-template.md | A13.5 | templates/quality/ | templates/ | 0 |
+| A14 | 1 | Folder | research | Quarterly research evidence and source material. | research/ | A | Training Project/ | research/ | 71 |
+| A14.1 | 2 | Folder | Q2_2026 | Quarterly research evidence and source material. | research/Q2_2026/ | A14 | research/ | research/ | 33 |
+| A14.2 | 2 | Folder | Q3_2026 | Quarterly research evidence and source material. | research/Q3_2026/ | A14 | research/ | research/ | 33 |
+| A14.3 | 2 | Folder | _archive | Archive index or retention evidence. | research/_archive/ | A14 | research/ | research/ | 2 |
+| A15 | 1 | Folder | curriculum | Learning plan, calendar, and design artifacts. | curriculum/ | A | Training Project/ | curriculum/ | 21 |
+| A15.1 | 2 | Folder | Q2_2026 | Learning plan, calendar, and design artifacts. | curriculum/Q2_2026/ | A15 | curriculum/ | curriculum/ | 9 |
+| A15.2 | 2 | Folder | Q3_2026 | Learning plan, calendar, and design artifacts. | curriculum/Q3_2026/ | A15 | curriculum/ | curriculum/ | 9 |
+| A15.3 | 2 | Folder | _archive | Archive index or retention evidence. | curriculum/_archive/ | A15 | curriculum/ | curriculum/ | 0 |
+| A16 | 1 | Folder | content | Draft, approved, and published learning content. | content/ | A | Training Project/ | content/ | 33 |
+| A16.1 | 2 | Folder | Q2_2026 | Draft, approved, and published learning content. | content/Q2_2026/ | A16 | content/ | content/ | 15 |
+| A16.2 | 2 | Folder | Q3_2026 | Draft, approved, and published learning content. | content/Q3_2026/ | A16 | content/ | content/ | 15 |
+| A16.3 | 2 | Folder | _archive | Archive index or retention evidence. | content/_archive/ | A16 | content/ | content/ | 0 |
+| A17 | 1 | Folder | agents | Agent prompts, configs, tests, and evaluation assets. | agents/ | A | Training Project/ | agents/ | 26 |
+| A17.1 | 2 | File | README.md | Entry point, navigation, operating rules. | agents/README.md | A17 | agents/ | agents/ | 0 |
+| A17.2 | 2 | File | prompt-index.md | Agent design, prompt, role, or behavior guidance. | agents/prompt-index.md | A17 | agents/ | agents/ | 0 |
+| A17.3 | 2 | File | prompt-version-history.md | Agent design, prompt, role, or behavior guidance. | agents/prompt-version-history.md | A17 | agents/ | agents/ | 0 |
+| A17.4 | 2 | File | prompt-testing-log.md | Agent design, prompt, role, or behavior guidance. | agents/prompt-testing-log.md | A17 | agents/ | agents/ | 0 |
+| A17.5 | 2 | Folder | prompts | Agent prompts, configs, tests, and evaluation assets. | agents/prompts/ | A17 | agents/ | agents/ | 7 |
+| A17.5.1 | 3 | File | research-agent-prompt.md | Agent design, prompt, role, or behavior guidance. | agents/prompts/research-agent-prompt.md | A17.5 | agents/prompts/ | agents/ | 0 |
+| A17.5.2 | 3 | File | analyst-agent-prompt.md | Agent design, prompt, role, or behavior guidance. | agents/prompts/analyst-agent-prompt.md | A17.5 | agents/prompts/ | agents/ | 0 |
+| A17.6 | 2 | Folder | configs | Agent prompts, configs, tests, and evaluation assets. | agents/configs/ | A17 | agents/ | agents/ | 5 |
+| A17.7 | 2 | Folder | evaluations | Agent prompts, configs, tests, and evaluation assets. | agents/evaluations/ | A17 | agents/ | agents/ | 4 |
+| A17.8 | 2 | Folder | experiments | Agent prompts, configs, tests, and evaluation assets. | agents/experiments/ | A17 | agents/ | agents/ | 2 |
+| A18 | 1 | Folder | src | Executable source code and dashboard assets. | src/ | A | Training Project/ | src/ | 33 |
+| A18.1 | 2 | Folder | pipeline | Executable source code and dashboard assets. | src/pipeline/ | A18 | src/ | src/ | 4 |
+| A18.2 | 2 | Folder | agents | Executable source code and dashboard assets. | src/agents/ | A18 | src/ | src/ | 8 |
+| A18.3 | 2 | Folder | python_executors | Executable source code and dashboard assets. | src/python_executors/ | A18 | src/ | src/ | 8 |
+| A18.4 | 2 | Folder | schemas | Executable source code and dashboard assets. | src/schemas/ | A18 | src/ | src/ | 6 |
+| A18.5 | 2 | Folder | dashboard | Executable source code and dashboard assets. | src/dashboard/ | A18 | src/ | src/ | 4 |
+| A18.6 | 2 | Folder | utils | Executable source code and dashboard assets. | src/utils/ | A18 | src/ | src/ | 5 |
+| A18.7 | 2 | Folder | cli | Executable source code and dashboard assets. | src/cli/ | A18 | src/ | src/ | 2 |
+| A19 | 1 | Folder | assets | Reusable brand and media assets. | assets/ | A | Training Project/ | assets/ | 13 |
+| A19.1 | 2 | Folder | brand | Reusable brand and media assets. | assets/brand/ | A19 | assets/ | assets/ | 4 |
+| A19.2 | 2 | Folder | icons | Reusable brand and media assets. | assets/icons/ | A19 | assets/ | assets/ | 0 |
+| A19.3 | 2 | Folder | images | Reusable brand and media assets. | assets/images/ | A19 | assets/ | assets/ | 0 |
+| A19.4 | 2 | Folder | audio | Reusable brand and media assets. | assets/audio/ | A19 | assets/ | assets/ | 0 |
+| A19.5 | 2 | Folder | video | Reusable brand and media assets. | assets/video/ | A19 | assets/ | assets/ | 0 |
+| A19.6 | 2 | Folder | slide-masters | Reusable brand and media assets. | assets/slide-masters/ | A19 | assets/ | assets/ | 0 |
+| A19.7 | 2 | Folder | stock | Reusable brand and media assets. | assets/stock/ | A19 | assets/ | assets/ | 2 |
+| A20 | 1 | Folder | outputs | Generated deliverables and distribution packages. | outputs/ | A | Training Project/ | outputs/ | 57 |
+| A20.1 | 2 | Folder | Q2_2026 | Generated deliverables and distribution packages. | outputs/Q2_2026/ | A20 | outputs/ | outputs/ | 27 |
+| A20.2 | 2 | Folder | Q3_2026 | Generated deliverables and distribution packages. | outputs/Q3_2026/ | A20 | outputs/ | outputs/ | 27 |
+| A20.3 | 2 | Folder | _archive | Generated deliverables and distribution packages. | outputs/_archive/ | A20 | outputs/ | outputs/ | 0 |
+| A21 | 1 | Folder | validation | Draft, approved, and published learning content. | validation/ | A | Training Project/ | validation/ | 20 |
+| A21.1 | 2 | Folder | content-qc | QC, approval, accessibility, and release evidence. | validation/content-qc/ | A21 | validation/ | validation/ | 3 |
+| A21.2 | 2 | Folder | source-verification | QC, approval, accessibility, and release evidence. | validation/source-verification/ | A21 | validation/ | validation/ | 3 |
+| A21.3 | 2 | Folder | accessibility | QC, approval, accessibility, and release evidence. | validation/accessibility/ | A21 | validation/ | validation/ | 3 |
+| A21.4 | 2 | Folder | prompt-output-evaluation | QC, approval, accessibility, and release evidence. | validation/prompt-output-evaluation/ | A21 | validation/ | validation/ | 3 |
+| A21.5 | 2 | Folder | release-readiness | QC, approval, accessibility, and release evidence. | validation/release-readiness/ | A21 | validation/ | validation/ | 3 |
+| A22 | 1 | Folder | tests | Automated/manual test coverage and fixtures. | tests/ | A | Training Project/ | tests/ | 24 |
+| A22.1 | 2 | Folder | unit | Automated/manual test coverage and fixtures. | tests/unit/ | A22 | tests/ | tests/ | 6 |
+| A22.2 | 2 | Folder | integration | Automated/manual test coverage and fixtures. | tests/integration/ | A22 | tests/ | tests/ | 4 |
+| A22.3 | 2 | Folder | regression | Automated/manual test coverage and fixtures. | tests/regression/ | A22 | tests/ | tests/ | 2 |
+| A22.4 | 2 | Folder | fixtures | Automated/manual test coverage and fixtures. | tests/fixtures/ | A22 | tests/ | tests/ | 5 |
+| A22.5 | 2 | Folder | manual | Automated/manual test coverage and fixtures. | tests/manual/ | A22 | tests/ | tests/ | 2 |
+| A23 | 1 | Folder | analytics | Measurement data, surveys, dashboards, and reports. | analytics/ | A | Training Project/ | analytics/ | 15 |
+| A23.1 | 2 | Folder | data | Measurement data, surveys, dashboards, and reports. | analytics/data/ | A23 | analytics/ | analytics/ | 3 |
+| A23.1.1 | 3 | Folder | raw | Measurement data, surveys, dashboards, and reports. | analytics/data/raw/ | A23.1 | analytics/data/ | analytics/ | 0 |
+| A23.1.2 | 3 | Folder | processed | Measurement data, surveys, dashboards, and reports. | analytics/data/processed/ | A23.1 | analytics/data/ | analytics/ | 0 |
+| A23.1.3 | 3 | Folder | anonymized | Measurement data, surveys, dashboards, and reports. | analytics/data/anonymized/ | A23.1 | analytics/data/ | analytics/ | 0 |
+| A23.2 | 2 | Folder | dashboards | Measurement data, surveys, dashboards, and reports. | analytics/dashboards/ | A23 | analytics/ | analytics/ | 2 |
+| A23.2.1 | 3 | File | dashboard-export.html | Dashboard artifact, spec, or code. | analytics/dashboards/dashboard-export.html | A23.2 | analytics/dashboards/ | analytics/ | 0 |
+| A23.2.2 | 3 | Folder | dashboard-snapshots | Measurement data, surveys, dashboards, and reports. | analytics/dashboards/dashboard-snapshots/ | A23.2 | analytics/dashboards/ | analytics/ | 0 |
+| A23.3 | 2 | Folder | surveys | Measurement data, surveys, dashboards, and reports. | analytics/surveys/ | A23 | analytics/ | analytics/ | 3 |
+| A23.3.1 | 3 | Folder | survey-results | Measurement data, surveys, dashboards, and reports. | analytics/surveys/survey-results/ | A23.3 | analytics/surveys/ | analytics/ | 0 |
+| A23.3.2 | 3 | File | survey-analysis.md | Learner feedback capture/analysis. | analytics/surveys/survey-analysis.md | A23.3 | analytics/surveys/ | analytics/ | 0 |
+| A23.3.3 | 3 | File | action-items.md | Learner feedback capture/analysis. | analytics/surveys/action-items.md | A23.3 | analytics/surveys/ | analytics/ | 0 |
+| A23.4 | 2 | Folder | reports | Measurement data, surveys, dashboards, and reports. | analytics/reports/ | A23 | analytics/ | analytics/ | 3 |
+| A23.4.1 | 3 | File | monthly-report.md | Monthly Report artifact for project operation. | analytics/reports/monthly-report.md | A23.4 | analytics/reports/ | analytics/ | 0 |
+| A23.4.2 | 3 | File | quarterly-report.md | Quarterly Report artifact for project operation. | analytics/reports/quarterly-report.md | A23.4 | analytics/reports/ | analytics/ | 0 |
+| A23.4.3 | 3 | File | annual-summary.md | Annual Summary artifact for project operation. | analytics/reports/annual-summary.md | A23.4 | analytics/reports/ | analytics/ | 0 |

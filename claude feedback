@@ -1,0 +1,1415 @@
+# Spark Media Workstation — Dashboard Upgrade Instructions for Opus Coder
+
+## Mission
+
+Upgrade `app/static/pipeline_dashboard.html` into a fully operational, visually
+polished command center. Do NOT rebuild from scratch — the existing functional
+logic, pipeline stepper, Phase 1 review panel, terminal, and GPU telemetry must
+all be preserved. This is a surgical upgrade: better visuals, tighter layout,
+missing functional pieces added.
+
+Work through each section below in order. After each section, verify against
+the checklist before moving to the next.
+
+---
+
+## Section 1 — Visual Foundation (do this first, everything builds on it)
+
+### 1.1 Global design tokens
+
+Add these CSS variables to `:root` at the top of the stylesheet:
+
+```css
+:root {
+  --surface-0: #0d0f14;
+  --surface-1: #13161e;
+  --surface-2: #1a1d28;
+  --surface-3: #21263a;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --text-primary: #f0f2f5;
+  --text-secondary: #8b90a0;
+  --text-muted: #52576b;
+  --accent-green: #10b981;
+  --accent-green-dim: rgba(16, 185, 129, 0.15);
+  --accent-amber: #f59e0b;
+  --accent-amber-dim: rgba(245, 158, 11, 0.12);
+  --accent-red: #ef4444;
+  --accent-red-dim: rgba(239, 68, 68, 0.12);
+  --accent-blue: #3b82f6;
+  --accent-blue-dim: rgba(59, 130, 246, 0.12);
+  --accent-purple: #8b5cf6;
+  --accent-purple-dim: rgba(139, 92, 246, 0.12);
+  --accent-rationale: #f59e0b;
+  --rationale-bg: rgba(245, 158, 11, 0.06);
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --transition: all 0.15s ease;
+}
+```
+
+### 1.2 Body and app shell
+
+```css
+html, body {
+  height: 100vh;
+  overflow: hidden;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-rows: 40px 1fr 164px;
+  grid-template-columns: 224px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+```
+
+### 1.3 Replace all existing panel backgrounds
+
+Find every dark background panel class and replace with:
+- Main surfaces: `background: var(--surface-1); border: 1px solid var(--border-subtle);`
+- Elevated cards: `background: var(--surface-2); border: 1px solid var(--border-medium);`
+- Active/selected state: `background: var(--surface-3); border: 1px solid var(--border-strong);`
+
+Remove all existing neon glow effects, box-shadows with colour, and
+hard-coded dark hex backgrounds. Replace with the token system above.
+
+---
+
+## Section 2 — Header Bar
+
+Replace the existing header with this exact structure:
+
+```html
+<header class="app-header">
+  <div class="header-left">
+    <div class="app-logo">
+      <i class="ti ti-bolt"></i>
+    </div>
+    <span class="app-title">Spark Media Workstation</span>
+    <span class="app-version">v3.0</span>
+  </div>
+  <div class="header-centre">
+    <div class="active-job-pill" id="header-job-pill">
+      <!-- Populated by JS when a job is running -->
+      <!-- Example: <i class="ti ti-player-play"></i> job_a3f82ca1 · Macro Lens · Running -->
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="header-btn" title="Notifications"><i class="ti ti-bell"></i></button>
+    <button class="header-btn" title="Settings"><i class="ti ti-settings"></i></button>
+    <div class="header-profile">
+      <div class="profile-avatar">X</div>
+      <span>X71 Network</span>
+    </div>
+    <span class="node-badge">NODE E · ONLINE</span>
+  </div>
+</header>
+```
+
+```css
+.app-header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.app-logo {
+  width: 24px; height: 24px; border-radius: var(--radius-sm);
+  background: var(--accent-green); display: flex; align-items: center;
+  justify-content: center; font-size: 14px; color: #000;
+}
+.app-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.app-version { font-size: 10px; color: var(--text-muted);
+  background: var(--surface-3); padding: 1px 6px; border-radius: var(--radius-sm); }
+.header-centre { flex: 1; display: flex; justify-content: center; }
+.active-job-pill {
+  font-size: 11px; color: var(--accent-green);
+  background: var(--accent-green-dim); border: 1px solid rgba(16,185,129,0.25);
+  padding: 3px 10px; border-radius: 20px; display: none;
+}
+.active-job-pill.visible { display: flex; align-items: center; gap: 6px; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.header-btn {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border-subtle);
+  color: var(--text-secondary); cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.header-btn:hover { background: var(--surface-3); color: var(--text-primary); }
+.profile-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent-purple); color: #fff;
+  font-size: 10px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.header-profile {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-secondary);
+}
+.node-badge {
+  font-size: 10px; font-weight: 500; color: var(--accent-green);
+  background: var(--accent-green-dim); border: 1px solid rgba(16,185,129,0.2);
+  padding: 2px 8px; border-radius: 20px; letter-spacing: 0.04em;
+}
+```
+
+---
+
+## Section 3 — Sidebar Upgrade
+
+### 3.1 Sidebar shell
+
+```css
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+```
+
+### 3.2 Batch launch panel
+
+Keep all existing batch launch controls. Restyle:
+- Section heading: 10px uppercase letter-spaced label in `var(--text-muted)`
+- Dropdown and input: `background: var(--surface-2); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-primary); padding: 6px 10px; font-size: 12px;`
+- "Run Full Content Pipeline" button:
+  ```css
+  background: var(--accent-green);
+  color: #000;
+  font-weight: 600;
+  font-size: 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px;
+  width: 100%;
+  cursor: pointer;
+  transition: var(--transition);
+  ```
+  On hover: `filter: brightness(1.1);`
+- "Processing..." state: `background: var(--surface-3); color: var(--accent-green); border: 1px solid var(--accent-green-dim);`
+
+### 3.3 Job history — rebuild with phase grouping
+
+Replace the existing flat job list with grouped phase sections:
+
+```html
+<div class="sidebar-section">
+  <div class="sidebar-label">Job History</div>
+
+  <div class="phase-group">
+    <div class="phase-group-header">
+      <span class="phase-dot dot-green"></span>
+      Phase 1 Complete
+      <span class="phase-count">3</span>
+    </div>
+    <div class="job-entry active" onclick="loadJob('job_a3f82ca1')">
+      <div class="job-status-dot dot-green"></div>
+      <div class="job-info">
+        <div class="job-name">Episode #5 · Macro Lens</div>
+        <div class="job-id">job_a3f82ca1</div>
+      </div>
+      <div class="job-action-dot dot-amber" title="Awaiting approval"></div>
+    </div>
+    <!-- more entries -->
+  </div>
+
+  <div class="phase-group">
+    <div class="phase-group-header">
+      <span class="phase-dot dot-blue"></span>
+      Phase 2 Running
+      <span class="phase-count">1</span>
+    </div>
+    <!-- entries -->
+  </div>
+
+  <div class="phase-group">
+    <div class="phase-group-header">
+      <span class="phase-dot dot-muted"></span>
+      Published
+      <span class="phase-count">5</span>
+    </div>
+    <!-- entries -->
+  </div>
+</div>
+```
+
+```css
+.phase-group { margin-bottom: 12px; }
+.phase-group-header {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 4px 0; margin-bottom: 4px;
+}
+.phase-count {
+  margin-left: auto; background: var(--surface-3);
+  padding: 1px 6px; border-radius: 10px;
+  font-size: 10px; color: var(--text-secondary);
+}
+.job-entry {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px; border-radius: var(--radius-md);
+  cursor: pointer; transition: var(--transition);
+  border: 1px solid transparent;
+}
+.job-entry:hover { background: var(--surface-2); border-color: var(--border-subtle); }
+.job-entry.active { background: var(--surface-3); border-color: var(--border-medium); }
+.job-info { flex: 1; min-width: 0; }
+.job-name { font-size: 11px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-id { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+.job-status-dot, .job-action-dot, .phase-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-green { background: var(--accent-green); }
+.dot-amber { background: var(--accent-amber); box-shadow: 0 0 4px var(--accent-amber); }
+.dot-red { background: var(--accent-red); }
+.dot-blue { background: var(--accent-blue); }
+.dot-muted { background: var(--text-muted); }
+```
+
+---
+
+## Section 4 — Pipeline Stepper (main panel top)
+
+Replace existing stepper with this compact horizontal pill row:
+
+```html
+<div class="stepper-bar">
+  <div class="stepper-job-label">
+    <i class="ti ti-topology-star-3"></i>
+    <span id="stepper-job-id">job_a3f82ca1</span>
+    <span class="stepper-channel-tag">Macro Lens</span>
+  </div>
+  <div class="stepper-pills">
+    <!-- Repeat for each step A through QC -->
+    <div class="step-pill passed" data-step="A">
+      <span class="step-letter">A</span>
+      <span class="step-label">Topic Gen</span>
+      <i class="ti ti-check step-icon"></i>
+    </div>
+    <div class="step-pill passed" data-step="B">
+      <span class="step-letter">B</span>
+      <span class="step-label">Script QA</span>
+      <i class="ti ti-check step-icon"></i>
+    </div>
+    <div class="step-pill active" data-step="C">
+      <span class="step-letter">C</span>
+      <span class="step-label">Audio Prod</span>
+      <div class="step-pulse"></div>
+    </div>
+    <div class="step-pill pending" data-step="D"><span class="step-letter">D</span><span class="step-label">Visuals</span></div>
+    <div class="step-pill pending" data-step="E"><span class="step-letter">E</span><span class="step-label">Upscale</span></div>
+    <div class="step-pill pending" data-step="F"><span class="step-letter">F</span><span class="step-label">Stitch</span></div>
+    <div class="step-pill pending" data-step="G"><span class="step-letter">G</span><span class="step-label">Publish</span></div>
+    <div class="step-pill pending" data-step="H"><span class="step-letter">H</span><span class="step-label">Clips</span></div>
+    <div class="step-pill pending" data-step="QC"><span class="step-letter">QC</span><span class="step-label">Content QC</span></div>
+  </div>
+  <div class="stepper-status-tag" id="stepper-status">
+    <i class="ti ti-bolt"></i> Ready to start
+  </div>
+</div>
+```
+
+```css
+.stepper-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px; background: var(--surface-1);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.stepper-job-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-secondary);
+  font-family: var(--font-mono); white-space: nowrap;
+}
+.stepper-channel-tag {
+  background: var(--accent-purple-dim); color: var(--accent-purple);
+  padding: 1px 7px; border-radius: 10px; font-size: 10px; font-family: sans-serif;
+}
+.stepper-pills { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.step-pill {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: 20px;
+  font-size: 10px; border: 1px solid transparent;
+  position: relative; transition: var(--transition);
+}
+.step-letter { font-weight: 600; font-size: 11px; }
+.step-label { font-size: 10px; }
+.step-icon { font-size: 11px; }
+
+.step-pill.passed {
+  background: var(--accent-green-dim);
+  border-color: rgba(16,185,129,0.25);
+  color: var(--accent-green);
+}
+.step-pill.active {
+  background: var(--accent-blue-dim);
+  border-color: rgba(59,130,246,0.4);
+  color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+.step-pill.pending {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+  opacity: 0.45;
+}
+.step-pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-blue);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.stepper-status-tag {
+  font-size: 10px; color: var(--accent-amber);
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(245,158,11,0.2);
+  padding: 3px 10px; border-radius: 20px;
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+```
+
+**JS: Update stepper dynamically**
+
+```javascript
+function updateStepper(steps) {
+  // steps = { A: 'passed', B: 'passed', C: 'active', D: 'pending', ... }
+  Object.entries(steps).forEach(([letter, state]) => {
+    const pill = document.querySelector(`.step-pill[data-step="${letter}"]`);
+    if (!pill) return;
+    pill.className = `step-pill ${state}`;
+    const icon = pill.querySelector('.step-icon');
+    const pulse = pill.querySelector('.step-pulse');
+    if (state === 'passed') {
+      if (!icon) pill.innerHTML += `<i class="ti ti-check step-icon"></i>`;
+      if (pulse) pulse.remove();
+    } else if (state === 'active') {
+      if (icon) icon.remove();
+      if (!pulse) pill.innerHTML += `<div class="step-pulse"></div>`;
+    } else {
+      if (icon) icon.remove();
+      if (pulse) pulse.remove();
+    }
+  });
+}
+```
+
+---
+
+## Section 5 — Phase 1 Review Panel (most important section)
+
+### 5.1 Panel header
+
+```html
+<div class="phase1-header">
+  <div class="phase1-title">
+    <i class="ti ti-clipboard-check"></i>
+    Pre-Production Asset Review
+    <span class="phase1-badge">Phase 1</span>
+  </div>
+  <div class="phase1-meta">
+    <span class="meta-chip">
+      <i class="ti ti-chart-bar"></i>
+      CTR: <strong id="ctr-score-display">8.5</strong>/10
+    </span>
+    <span class="meta-chip" id="edit-mode-badge" style="display:none; border-color: var(--accent-amber); color: var(--accent-amber);">
+      <i class="ti ti-pencil"></i> EDIT MODE ACTIVE
+    </span>
+  </div>
+</div>
+```
+
+### 5.2 Three-column layout
+
+```css
+.phase1-columns {
+  display: grid;
+  grid-template-columns: 28% 30% 42%;
+  gap: 0;
+  height: calc(100vh - 40px - 48px - 48px - 164px - 44px);
+  overflow: hidden;
+}
+.phase1-col {
+  overflow-y: auto;
+  padding: 10px 12px;
+  border-right: 1px solid var(--border-subtle);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+.phase1-col:last-child { border-right: none; }
+```
+
+### 5.3 Column 1 — Research & 5W+H (left)
+
+**Implement accordion for each sub-field:**
+
+```html
+<div class="col-section-label">Market Research · 5W+H</div>
+
+<!-- Topic shortlist table (collapsible, shown first) -->
+<div class="accordion-block">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    <i class="ti ti-list-check"></i>
+    Topic shortlist
+    <div class="accordion-meta">
+      <span class="score-badge green">Winner: 8.5</span>
+    </div>
+    <i class="ti ti-chevron-down acc-icon"></i>
+  </div>
+  <div class="accordion-body" style="display:none;">
+    <table class="shortlist-table">
+      <thead>
+        <tr><th>Topic</th><th>CTR</th><th>CPM</th><th>Comp.</th><th></th></tr>
+      </thead>
+      <tbody id="shortlist-tbody">
+        <!-- populated by JS from phase1_response -->
+      </tbody>
+    </table>
+    <div class="rationale-block" id="shortlist-rationale">
+      <!-- selection_rationale text -->
+    </div>
+  </div>
+</div>
+
+<!-- Each 5W+H field as an accordion -->
+<div class="accordion-block">
+  <div class="accordion-header" onclick="toggleAccordion(this)">
+    <i class="ti ti-search"></i>
+    What was researched
+    <i class="ti ti-chevron-down acc-icon"></i>
+  </div>
+  <div class="accordion-body" style="display:none;">
+    <div class="field-value" data-field-path="section_1_market_research.what_was_researched.value"
+         id="field-what-researched"><!-- value --></div>
+    <div class="rationale-block">
+      <div class="rationale-label">Rationale</div>
+      <div class="rationale-text" data-field-path="section_1_market_research.what_was_researched.rationale"
+           id="field-what-researched-rationale"><!-- rationale --></div>
+    </div>
+  </div>
+</div>
+
+<!-- Repeat accordion blocks for: What was found, Who is the audience,
+     When & Where, Why this topic (with CPM/search/competition sub-fields),
+     How we monetise -->
+```
+
+```css
+.col-section-label {
+  font-size: 10px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 0 0 8px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.accordion-block {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.accordion-header {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 10px; cursor: pointer;
+  font-size: 12px; color: var(--text-secondary);
+  background: var(--surface-2);
+  transition: var(--transition);
+  user-select: none;
+}
+.accordion-header:hover { background: var(--surface-3); color: var(--text-primary); }
+.accordion-header i:first-child { font-size: 14px; color: var(--text-muted); }
+.acc-icon { margin-left: auto; font-size: 12px; transition: transform 0.15s; }
+.accordion-header.open .acc-icon { transform: rotate(180deg); }
+.accordion-body { padding: 10px; background: var(--surface-1); }
+.accordion-meta { margin-left: auto; margin-right: 4px; }
+
+.field-value {
+  font-size: 12px; color: var(--text-primary);
+  line-height: 1.6; margin-bottom: 8px;
+}
+.rationale-block {
+  border-left: 2px solid var(--accent-rationale);
+  background: var(--rationale-bg);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 7px 10px; margin-top: 8px;
+}
+.rationale-label {
+  font-size: 10px; font-weight: 500;
+  color: var(--accent-amber); text-transform: uppercase;
+  letter-spacing: 0.05em; margin-bottom: 4px;
+}
+.rationale-text {
+  font-size: 11px; color: var(--text-secondary);
+  font-style: italic; line-height: 1.5;
+}
+.shortlist-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;
+}
+.shortlist-table th {
+  font-size: 10px; color: var(--text-muted); text-align: left;
+  padding: 3px 4px; border-bottom: 1px solid var(--border-subtle);
+}
+.shortlist-table td { padding: 4px 4px; border-bottom: 1px solid var(--border-subtle); }
+.shortlist-table tr.winner td { color: var(--accent-green); }
+.shortlist-table tr.rejected td { color: var(--text-muted); text-decoration: line-through; }
+```
+
+### 5.4 Column 2 — Titles & Thumbnails (centre)
+
+```html
+<div class="col-section-label">Title Strategy & Thumbnails</div>
+
+<!-- CTR framework note -->
+<div class="info-block" id="ctr-framework-block"></div>
+
+<!-- Title variants -->
+<div class="col-sub-label">Title variants</div>
+<div id="title-variants-list">
+  <!-- JS renders each title as: -->
+  <div class="title-card recommended">
+    <div class="title-card-header">
+      <span class="rank-badge">1 · Recommended</span>
+      <button class="regen-btn" title="Regenerate this title" onclick="regenField('title_1')">
+        <i class="ti ti-refresh"></i>
+      </button>
+    </div>
+    <div class="title-text" data-field-path="section_2_title_strategy.variants[0].title"
+         contenteditable="false">Title text here</div>
+    <div class="title-meta-row">
+      <span class="meta-tag">Hook: curiosity gap</span>
+      <span class="meta-tag">Trigger: FOMO</span>
+      <span class="char-count">52 chars</span>
+    </div>
+    <div class="rationale-block">
+      <div class="rationale-label">Rationale</div>
+      <div class="rationale-text" data-field-path="section_2_title_strategy.variants[0].rationale">...</div>
+    </div>
+  </div>
+  <!-- Variants 2 and 3 without "recommended" class -->
+</div>
+
+<!-- A/B test recommendation -->
+<div class="info-block" id="ab-test-block" style="margin-top: 8px;"></div>
+
+<!-- Thumbnail concepts -->
+<div class="col-sub-label" style="margin-top: 12px;">Thumbnail concepts</div>
+<div id="thumbnail-concepts-list">
+  <!-- JS renders each concept as: -->
+  <div class="thumb-card recommended">
+    <div class="thumb-card-header">
+      <span class="rank-badge green">TH_01 · Recommended</span>
+      <button class="regen-btn" onclick="regenField('thumb_1')"><i class="ti ti-refresh"></i></button>
+    </div>
+    <div class="thumb-fields">
+      <div class="thumb-field"><span class="tf-label">Subject</span>
+        <span class="tf-value" data-field-path="...thumbnails[0].subject">...</span></div>
+      <div class="thumb-field"><span class="tf-label">Lighting</span>
+        <span class="tf-value">...</span></div>
+      <div class="thumb-field"><span class="tf-label">Text overlay</span>
+        <span class="tf-value accent">THE FED LIED</span></div>
+      <div class="thumb-field"><span class="tf-label">Emotion target</span>
+        <span class="tf-value">Surprise</span></div>
+    </div>
+    <div class="accordion-block" style="margin-top:8px;">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <i class="ti ti-terminal"></i> ComfyUI prompt
+        <i class="ti ti-chevron-down acc-icon"></i>
+      </div>
+      <div class="accordion-body" style="display:none;">
+        <div class="mono-block" data-field-path="...comfyui_generation_prompt">...</div>
+        <div class="mono-label">Negative prompt</div>
+        <div class="mono-block" data-field-path="...comfyui_negative_prompt">...</div>
+      </div>
+    </div>
+    <div class="rationale-block" style="margin-top:8px;">
+      <div class="rationale-label">Rationale</div>
+      <div class="rationale-text">...</div>
+    </div>
+  </div>
+</div>
+```
+
+```css
+.info-block {
+  font-size: 11px; color: var(--text-secondary);
+  background: var(--surface-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 8px 10px; margin-bottom: 8px;
+  line-height: 1.5;
+}
+.col-sub-label {
+  font-size: 10px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+}
+.title-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 10px;
+  margin-bottom: 6px; background: var(--surface-2);
+}
+.title-card.recommended {
+  border-color: rgba(16,185,129,0.3);
+  background: rgba(16,185,129,0.03);
+}
+.title-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.rank-badge {
+  font-size: 10px; font-weight: 500;
+  color: var(--text-muted); background: var(--surface-3);
+  padding: 2px 7px; border-radius: 10px;
+}
+.rank-badge.green { color: var(--accent-green); background: var(--accent-green-dim); }
+.title-text {
+  font-size: 13px; color: var(--text-primary); font-weight: 500;
+  line-height: 1.4; margin-bottom: 6px;
+}
+.title-text[contenteditable="true"] {
+  border-left: 2px solid var(--accent-amber);
+  padding-left: 6px; outline: none; background: var(--surface-3);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.title-meta-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+.meta-tag {
+  font-size: 10px; color: var(--accent-blue);
+  background: var(--accent-blue-dim); padding: 1px 6px; border-radius: 10px;
+}
+.char-count { font-size: 10px; color: var(--text-muted); margin-left: auto; }
+.regen-btn {
+  width: 22px; height: 22px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border-medium);
+  color: var(--text-muted); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.regen-btn:hover { color: var(--accent-amber); border-color: var(--accent-amber); }
+.thumb-card { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; background: var(--surface-2); }
+.thumb-card.recommended { border-color: rgba(16,185,129,0.3); }
+.thumb-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.thumb-fields { display: flex; flex-direction: column; gap: 4px; }
+.thumb-field { display: flex; gap: 6px; font-size: 11px; }
+.tf-label { color: var(--text-muted); min-width: 72px; flex-shrink: 0; }
+.tf-value { color: var(--text-secondary); }
+.tf-value.accent { color: var(--accent-amber); font-weight: 500; }
+.mono-block {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary);
+  background: var(--surface-0); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); padding: 7px 9px; line-height: 1.5;
+  white-space: pre-wrap; word-break: break-word;
+}
+.mono-label { font-size: 10px; color: var(--text-muted); margin: 6px 0 3px; }
+```
+
+### 5.5 Column 3 — Master script (right, scrollable)
+
+Each script section as a card with collapsed sub-panels and hook audit badges:
+
+```html
+<div class="col-section-label">Master Script Sections</div>
+
+<div class="script-card" data-section="S01">
+  <div class="script-card-header">
+    <div class="script-section-badge hook">HOOK</div>
+    <div class="script-section-meta">
+      <span class="script-id">S01</span>
+      <span class="script-duration">30s · ~70 words</span>
+    </div>
+    <button class="regen-btn" onclick="regenField('narration_S01')"><i class="ti ti-refresh"></i></button>
+  </div>
+
+  <!-- Hook audit badges — only shown on HOOK section -->
+  <div class="hook-audit-row" id="hook-audit-S01">
+    <span class="audit-badge pass" title="Urgency signal present">Urgency ✓</span>
+    <span class="audit-badge pass" title="Specific promise stated">Promise ✓</span>
+    <span class="audit-badge pass" title="No preamble">No preamble ✓</span>
+    <span class="audit-badge pass" title="Pattern interrupt present">Pattern ✓</span>
+    <span class="audit-badge fail" title="Viewer benefit not within 20 words">Benefit ✗</span>
+  </div>
+
+  <!-- Narration text -->
+  <div class="narration-text"
+       data-field-path="section_4_master_script.sections[0].narration"
+       contenteditable="false">
+    By the end of this video, you will realize why AI coding
+    assistants is rewriting Wall Street's rules.
+  </div>
+
+  <!-- Collapsed sub-panels -->
+  <div class="script-sub-panels">
+    <div class="accordion-block" style="margin-top:7px;">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <i class="ti ti-photo"></i> Visual gen prompt
+        <i class="ti ti-chevron-down acc-icon"></i>
+      </div>
+      <div class="accordion-body" style="display:none;">
+        <div class="thumb-fields">
+          <div class="thumb-field"><span class="tf-label">Scene</span>
+            <span class="tf-value" data-field-path="...visual_gen_prompt.scene_description">...</span></div>
+          <div class="thumb-field"><span class="tf-label">Camera</span>
+            <span class="tf-value">slow_zoom_in</span></div>
+          <div class="thumb-field"><span class="tf-label">Motion</span>
+            <span class="tf-value">medium</span></div>
+          <div class="thumb-field"><span class="tf-label">On-screen text</span>
+            <span class="tf-value accent">...</span></div>
+        </div>
+        <div class="mono-label">ComfyUI prompt</div>
+        <div class="mono-block" data-field-path="...visual_gen_prompt.comfyui_prompt">...</div>
+        <button class="regen-btn" style="margin-top:6px; width:100%; justify-content:center;" onclick="regenField('visual_S01')">
+          <i class="ti ti-refresh"></i> Regenerate visual prompt
+        </button>
+      </div>
+    </div>
+
+    <div class="accordion-block" style="margin-top:4px;">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <i class="ti ti-music"></i> Audio music cue
+        <i class="ti ti-chevron-down acc-icon"></i>
+      </div>
+      <div class="accordion-body" style="display:none;">
+        <div class="thumb-fields">
+          <div class="thumb-field"><span class="tf-label">Mood</span><span class="tf-value">tense</span></div>
+          <div class="thumb-field"><span class="tf-label">Tempo</span><span class="tf-value">medium · 95–110 BPM</span></div>
+          <div class="thumb-field"><span class="tf-label">Instruments</span><span class="tf-value">strings, low piano</span></div>
+          <div class="thumb-field"><span class="tf-label">Energy curve</span><span class="tf-value">builds</span></div>
+        </div>
+        <div class="mono-label">ACE-Step prompt</div>
+        <div class="mono-block" data-field-path="...audio_music_cue.ace_step_prompt">...</div>
+        <button class="regen-btn" style="margin-top:6px; width:100%; justify-content:center;" onclick="regenField('audio_S01')">
+          <i class="ti ti-refresh"></i> Regenerate audio cue
+        </button>
+      </div>
+    </div>
+
+    <div class="accordion-block" style="margin-top:4px;">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <i class="ti ti-bulb"></i> Rationale
+        <i class="ti ti-chevron-down acc-icon"></i>
+      </div>
+      <div class="accordion-body" style="display:none;">
+        <div class="rationale-block" style="margin:0;">
+          <div class="rationale-label">Rationale</div>
+          <div class="rationale-text" data-field-path="...rationale">...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Repeat script-card for INTRO, BODY sections, CTA -->
+```
+
+```css
+.script-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 10px;
+  margin-bottom: 8px; background: var(--surface-2);
+}
+.script-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.script-section-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px; letter-spacing: 0.05em;
+}
+.script-section-badge.hook { background: #7c3aed22; color: #a78bfa; border: 1px solid #7c3aed44; }
+.script-section-badge.intro { background: var(--accent-blue-dim); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.3); }
+.script-section-badge.body { background: var(--accent-amber-dim); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.3); }
+.script-section-badge.cta { background: var(--accent-green-dim); color: var(--accent-green); border: 1px solid rgba(16,185,129,0.3); }
+.script-section-meta { flex: 1; }
+.script-id { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-right: 6px; }
+.script-duration { font-size: 10px; color: var(--text-muted); }
+.hook-audit-row {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;
+}
+.audit-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500;
+}
+.audit-badge.pass { background: var(--accent-green-dim); color: var(--accent-green); border: 1px solid rgba(16,185,129,0.2); }
+.audit-badge.fail { background: var(--accent-red-dim); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.2); }
+.narration-text {
+  font-size: 12px; color: var(--text-primary); line-height: 1.6;
+  margin-bottom: 6px; padding: 8px; background: var(--surface-1);
+  border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);
+}
+.narration-text[contenteditable="true"] {
+  border-color: var(--accent-amber);
+  background: var(--surface-3);
+}
+```
+
+---
+
+## Section 6 — Action Row
+
+```html
+<div class="action-row" id="phase1-action-row">
+  <div class="action-row-left">
+    <span class="action-job-ref">
+      <i class="ti ti-file-text"></i> job_a3f82ca1 · Phase 1 review
+    </span>
+  </div>
+  <div class="action-row-right">
+    <button class="action-btn reject" onclick="handleReject()">
+      <i class="ti ti-x"></i> Reject & Cancel
+    </button>
+    <button class="action-btn edit" id="edit-assets-btn" onclick="toggleEditMode()">
+      <i class="ti ti-pencil"></i> Edit Assets
+    </button>
+    <button class="action-btn export" onclick="toggleExportPanel()">
+      <i class="ti ti-download"></i> Export
+    </button>
+    <button class="action-btn approve" id="approve-btn" onclick="handleApprove()">
+      <i class="ti ti-send"></i> Approve & Dispatch to GPUs →
+    </button>
+  </div>
+</div>
+```
+
+```css
+.action-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; background: var(--surface-1);
+  border-top: 1px solid var(--border-subtle); flex-shrink: 0;
+}
+.action-row-left { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.action-row-right { display: flex; align-items: center; gap: 8px; }
+.action-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-md);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid; transition: var(--transition);
+}
+.action-btn.reject {
+  background: var(--accent-red-dim); color: var(--accent-red);
+  border-color: rgba(239,68,68,0.3);
+}
+.action-btn.reject:hover { background: rgba(239,68,68,0.25); }
+.action-btn.edit {
+  background: var(--accent-amber-dim); color: var(--accent-amber);
+  border-color: rgba(245,158,11,0.3);
+}
+.action-btn.edit:hover { background: rgba(245,158,11,0.25); }
+.action-btn.edit.active {
+  background: var(--accent-amber); color: #000;
+  border-color: var(--accent-amber);
+}
+.action-btn.export {
+  background: var(--surface-2); color: var(--text-secondary);
+  border-color: var(--border-medium);
+}
+.action-btn.export:hover { background: var(--surface-3); color: var(--text-primary); }
+.action-btn.approve {
+  background: var(--accent-green); color: #000;
+  border-color: var(--accent-green); font-weight: 600;
+}
+.action-btn.approve:hover { filter: brightness(1.1); }
+.action-btn.approve.edit-mode {
+  background: var(--accent-amber); color: #000; border-color: var(--accent-amber);
+}
+```
+
+---
+
+## Section 7 — Footer (Terminal + Telemetry + Upcoming Tasks)
+
+### 7.1 Footer shell
+
+```css
+.app-footer {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: 1fr 260px 220px;
+  border-top: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.footer-panel {
+  padding: 8px 12px; overflow: hidden;
+  border-right: 1px solid var(--border-subtle);
+}
+.footer-panel:last-child { border-right: none; }
+.footer-label {
+  font-size: 10px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  display: flex; align-items: center; gap: 5px; margin-bottom: 6px;
+}
+```
+
+### 7.2 Terminal
+
+```html
+<div class="footer-panel">
+  <div class="footer-label"><i class="ti ti-terminal"></i> System log output</div>
+  <div class="terminal-output" id="terminal-output">
+    <div class="log-line info">[00:00:00] Console initialised. Ready to run pipelines.</div>
+    <!-- JS appends new lines here -->
+  </div>
+</div>
+```
+
+```css
+.terminal-output {
+  height: 110px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border-medium) transparent;
+}
+.log-line {
+  font-family: var(--font-mono); font-size: 11px;
+  line-height: 1.6; padding: 0;
+}
+.log-line.info { color: var(--accent-green); }
+.log-line.warn { color: var(--accent-amber); }
+.log-line.error { color: var(--accent-red); }
+.log-line.muted { color: var(--text-muted); }
+```
+
+**JS: auto-scroll terminal on new log**
+```javascript
+function appendLog(message, type = 'info') {
+  const terminal = document.getElementById('terminal-output');
+  const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  line.textContent = `[${time}] ${message}`;
+  terminal.appendChild(line);
+  terminal.scrollTop = terminal.scrollHeight;
+}
+```
+
+### 7.3 GPU telemetry
+
+```html
+<div class="footer-panel">
+  <div class="footer-label"><i class="ti ti-cpu"></i> Hardware telemetry</div>
+  <div class="telemetry-list" id="telemetry-list">
+    <div class="gpu-row">
+      <div class="gpu-name">GPU [0] RTX 3090</div>
+      <div class="gpu-stats">
+        <span class="gpu-stat">VRAM: <strong id="vram0">15.2GB/24GB</strong></span>
+        <div class="vram-bar"><div class="vram-fill" style="width:63%; background: var(--accent-green);"></div></div>
+        <span class="gpu-stat muted">Load: <span id="load0">0%</span> · Temp: <span id="temp0">25°C</span> · <span id="power0">14W</span></span>
+      </div>
+    </div>
+    <div class="gpu-row">
+      <div class="gpu-name">GPU [1] RTX 3060</div>
+      <div class="gpu-stats">
+        <span class="gpu-stat">VRAM: <strong id="vram1">0.0GB/12GB</strong></span>
+        <div class="vram-bar"><div class="vram-fill" style="width:0%; background: var(--text-muted);"></div></div>
+        <span class="gpu-stat muted">Load: <span id="load1">0%</span> · Temp: <span id="temp1">26°C</span> · <span id="power1">13W</span></span>
+      </div>
+    </div>
+    <div class="runtime-row">
+      <span class="footer-label" style="margin:6px 0 0;">Run time</span>
+      <span class="runtime-value" id="runtime-value">00:00:00</span>
+    </div>
+  </div>
+</div>
+```
+
+```css
+.gpu-row { margin-bottom: 8px; }
+.gpu-name { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; }
+.gpu-stats { display: flex; flex-direction: column; gap: 2px; }
+.gpu-stat { font-size: 11px; color: var(--text-secondary); }
+.gpu-stat strong { color: var(--text-primary); }
+.gpu-stat.muted { font-size: 10px; color: var(--text-muted); }
+.vram-bar {
+  height: 3px; background: var(--surface-3);
+  border-radius: 2px; margin: 2px 0; overflow: hidden;
+}
+.vram-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.runtime-row { display: flex; align-items: center; justify-content: space-between; }
+.runtime-value { font-family: var(--font-mono); font-size: 13px; color: var(--accent-green); }
+```
+
+### 7.4 Upcoming tasks panel (new — from Image 2)
+
+```html
+<div class="footer-panel">
+  <div class="footer-label"><i class="ti ti-clock"></i> Upcoming tasks</div>
+  <div class="upcoming-list" id="upcoming-list">
+    <div class="upcoming-item">
+      <div class="upcoming-dot dot-blue"></div>
+      <div class="upcoming-info">
+        <div class="upcoming-name">Audio Prod · Macro Lens</div>
+        <div class="upcoming-sub">job_a3f82ca1 · Step C</div>
+      </div>
+      <div class="upcoming-status">Next</div>
+    </div>
+    <div class="upcoming-item">
+      <div class="upcoming-dot dot-muted"></div>
+      <div class="upcoming-info">
+        <div class="upcoming-name">Topic Gen · Dark Shield</div>
+        <div class="upcoming-sub">job_df4bc192 · Step A</div>
+      </div>
+      <div class="upcoming-status">Queued</div>
+    </div>
+  </div>
+</div>
+```
+
+```css
+.upcoming-list { display: flex; flex-direction: column; gap: 5px; }
+.upcoming-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: var(--radius-md);
+  background: var(--surface-2); border: 1px solid var(--border-subtle);
+}
+.upcoming-info { flex: 1; min-width: 0; }
+.upcoming-name { font-size: 11px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upcoming-sub { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+.upcoming-status { font-size: 10px; color: var(--accent-blue); background: var(--accent-blue-dim); padding: 1px 6px; border-radius: 10px; white-space: nowrap; }
+```
+
+---
+
+## Section 8 — JavaScript: Edit Mode + Export + Regen
+
+### 8.1 State object
+
+```javascript
+window.SPARK_STATE = {
+  job_id: null,
+  phase1_response: null,
+  phase1_edited: {},
+  edit_mode_active: false,
+  export_format: 'md',
+  export_sections: {
+    market_research: true, titles: true, thumbnails: true,
+    script: true, asset_manifest: true, seo_metadata: true, raw_metadata: false
+  }
+};
+```
+
+### 8.2 Edit mode toggle
+
+```javascript
+function toggleEditMode() {
+  const state = window.SPARK_STATE;
+  state.edit_mode_active = !state.edit_mode_active;
+
+  const editBtn = document.getElementById('edit-assets-btn');
+  const approveBtn = document.getElementById('approve-btn');
+  const badge = document.getElementById('edit-mode-badge');
+
+  // Toggle all data-field-path elements between display and editable
+  document.querySelectorAll('[data-field-path]').forEach(el => {
+    if (state.edit_mode_active) {
+      el.setAttribute('contenteditable', 'true');
+      el.classList.add('editable-active');
+      el.addEventListener('input', trackEdit);
+    } else {
+      el.setAttribute('contenteditable', 'false');
+      el.classList.remove('editable-active');
+    }
+  });
+
+  if (state.edit_mode_active) {
+    editBtn.textContent = '✕  Cancel Edits';
+    editBtn.classList.add('active');
+    approveBtn.textContent = 'Save Edits & Dispatch →';
+    approveBtn.classList.add('edit-mode');
+    badge.style.display = 'flex';
+    appendLog('Edit mode activated. Fields are now editable.', 'warn');
+  } else {
+    editBtn.innerHTML = '<i class="ti ti-pencil"></i> Edit Assets';
+    editBtn.classList.remove('active');
+    approveBtn.innerHTML = '<i class="ti ti-send"></i> Approve & Dispatch to GPUs →';
+    approveBtn.classList.remove('edit-mode');
+    badge.style.display = 'none';
+    window.SPARK_STATE.phase1_edited = {};
+    appendLog('Edit mode cancelled. Changes discarded.', 'warn');
+  }
+}
+
+function trackEdit(e) {
+  const path = e.target.dataset.fieldPath;
+  if (path) window.SPARK_STATE.phase1_edited[path] = e.target.textContent.trim();
+}
+```
+
+### 8.3 Accordion toggle
+
+```javascript
+function toggleAccordion(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.style.display = isOpen ? 'none' : 'block';
+}
+```
+
+### 8.4 Per-field regeneration
+
+```javascript
+async function regenField(fieldId) {
+  const instruction = prompt(`Instruction for regenerating "${fieldId}":\n(e.g. "Make this punchier", "More technical tone")`);
+  if (!instruction) return;
+
+  appendLog(`Regenerating field: ${fieldId} — "${instruction}"`, 'info');
+
+  const el = document.querySelector(`[data-regen-id="${fieldId}"]`);
+  const currentValue = el ? el.textContent.trim() : '';
+
+  try {
+    const res = await fetch('/api/regen/field', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_id: window.SPARK_STATE.job_id,
+        field_id: fieldId,
+        current_value: currentValue,
+        instruction: instruction
+      })
+    });
+    const data = await res.json();
+    if (el && data.new_value) {
+      el.textContent = data.new_value;
+      window.SPARK_STATE.phase1_edited[fieldId] = data.new_value;
+      appendLog(`Field "${fieldId}" regenerated successfully.`, 'info');
+    }
+  } catch (err) {
+    appendLog(`Regen failed for "${fieldId}": ${err.message}`, 'error');
+  }
+}
+```
+
+### 8.5 Export panel toggle and download
+
+```javascript
+function toggleExportPanel() {
+  const panel = document.getElementById('export-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function downloadExport() {
+  const format = window.SPARK_STATE.export_format;
+  const state = window.SPARK_STATE;
+  const jobId = state.job_id || 'unknown';
+  const channelId = state.phase1_response?.job_meta?.channel_name?.replace(/\s/g,'') || 'Channel';
+  const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const filename = `phase1_${channelId}_${jobId}_${date}.${format === 'json' ? 'json' : format === 'txt' ? 'txt' : 'md'}`;
+
+  const wasEdited = Object.keys(state.phase1_edited).length > 0;
+  let content = buildExportContent(format, wasEdited);
+
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  appendLog(`Exported Phase 1 as ${filename}`, 'info');
+}
+
+function copyExportToClipboard() {
+  const format = window.SPARK_STATE.export_format;
+  const wasEdited = Object.keys(window.SPARK_STATE.phase1_edited).length > 0;
+  const content = buildExportContent(format, wasEdited);
+  navigator.clipboard.writeText(content).then(() => {
+    appendLog('Phase 1 copied to clipboard.', 'info');
+  });
+}
+
+function buildExportContent(format, wasEdited) {
+  const p = window.SPARK_STATE.phase1_response;
+  const e = window.SPARK_STATE.phase1_edited;
+  const getVal = (path, fallback='') => e[path] ?? fallback;
+
+  const reviewPrompt = `
+# External LLM Review Brief
+# Phase 1 Pre-Production Package — ${p?.job_meta?.channel_name}
+# Job ID: ${p?.job_meta?.job_id} | Exported: ${new Date().toISOString()}
+${wasEdited ? '# NOTE: This export reflects manually edited values.\n' : ''}
+## Review instructions
+You are a senior YouTube content strategist. Review the Phase 1 brief below.
+For each section provide: score 1-10, 2-3 strengths, 2-3 weaknesses, one improvement.
+Sections: market research quality, topic selection, title CTR, thumbnail effectiveness,
+hook strength, script pacing, monetisation strategy, asset generation prompts.
+Be direct. Quote specific weak lines. Do not be diplomatic.
+---
+`;
+  if (format === 'json') {
+    const merged = { ...p, _review_instructions: reviewPrompt, _edited_fields: e };
+    return JSON.stringify(merged, null, 2);
+  }
+  // Build markdown — full content from phase1_response merged with edits
+  return reviewPrompt + buildMarkdownExport(p, e);
+}
+```
+
+---
+
+## Section 9 — Export Panel HTML
+
+Place this div just above the action row in the DOM:
+
+```html
+<div id="export-panel" style="display:none; position:absolute; bottom:56px; right:16px; z-index:200; width:480px;">
+  <div style="background:var(--surface-2); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <span style="font-size:13px; font-weight:500; color:var(--text-primary);">
+        <i class="ti ti-download"></i> Export Phase 1 for external review
+      </span>
+      <button onclick="toggleExportPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div>
+        <div class="col-sub-label">Format</div>
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <button class="export-fmt-btn active" onclick="setExportFmt(this,'md')">Markdown</button>
+          <button class="export-fmt-btn" onclick="setExportFmt(this,'txt')">Plain text</button>
+          <button class="export-fmt-btn" onclick="setExportFmt(this,'json')">JSON</button>
+        </div>
+        <div class="col-sub-label">Options</div>
+        <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-secondary);margin-bottom:6px;">
+          <input type="checkbox" id="prepend-prompt-toggle" checked> Prepend LLM review prompt
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-secondary);">
+          <input type="checkbox" id="include-raw-meta"> Include raw metadata
+        </label>
+      </div>
+      <div>
+        <div class="col-sub-label">Include sections</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">
+            <input type="checkbox" checked> Market research (5W+H)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">
+            <input type="checkbox" checked> Title variants</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">
+            <input type="checkbox" checked> Thumbnail concepts</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">
+            <input type="checkbox" checked> Master script</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">
+            <input type="checkbox" checked> Asset manifest</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">
+            <input type="checkbox" checked> SEO metadata</label>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border-subtle);margin-top:12px;padding-top:12px;display:flex;gap:8px;align-items:center;">
+      <button class="action-btn approve" style="flex:1;" onclick="downloadExport()">
+        <i class="ti ti-download"></i> Download file
+      </button>
+      <button class="action-btn export" onclick="copyExportToClipboard()">
+        <i class="ti ti-copy"></i> Copy
+      </button>
+    </div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:8px;font-family:var(--font-mono);" id="export-filename-preview">
+      phase1_MacroLens_job_a3f82ca1_20260620.md
+    </div>
+  </div>
+</div>
+```
+
+```css
+.export-fmt-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: var(--radius-md);
+  background: var(--surface-3); border: 1px solid var(--border-medium);
+  color: var(--text-secondary); cursor: pointer; transition: var(--transition);
+}
+.export-fmt-btn.active {
+  background: var(--accent-blue-dim); border-color: rgba(59,130,246,0.4);
+  color: var(--accent-blue);
+}
+```
+
+---
+
+## Implementation Checklist
+
+Work through this after completing all sections. Do not mark done until verified.
+
+**Foundation**
+- [ ] All CSS tokens in `:root`, no hardcoded hex backgrounds remaining
+- [ ] `html, body` locked to `100vh; overflow:hidden`
+- [ ] `app-shell` grid: `40px 1fr 164px` rows, `224px 1fr` columns
+
+**Header**
+- [ ] App logo, title, version badge
+- [ ] Active job pill (hidden by default, shown when job running)
+- [ ] Notification, settings, profile buttons
+- [ ] NODE E ONLINE badge
+
+**Sidebar**
+- [ ] Job history grouped by phase with coloured header dots
+- [ ] Each job entry has status dot, name, job ID, action dot
+- [ ] Active entry highlighted with surface-3 background
+- [ ] Batch launch controls restyled with new tokens
+
+**Stepper**
+- [ ] All 9 steps (A→QC) rendered as pills
+- [ ] passed = green, active = blue pulsing dot, pending = dimmed
+- [ ] `updateStepper()` JS function wired to pipeline events
+- [ ] Active job label and channel tag visible
+
+**Phase 1 panel — 3 columns**
+- [ ] Left col: all 5W+H fields as accordions with amber rationale blocks
+- [ ] Left col: topic shortlist table with winner/rejected row styles
+- [ ] Centre col: title cards with rank badge, hook type tag, char count, regen button
+- [ ] Centre col: thumbnail cards with all fields, collapsed ComfyUI prompt accordion
+- [ ] Right col: script section cards with section type badges
+- [ ] Right col: hook audit badges on S01 (5 pass/fail)
+- [ ] Right col: Visual prompt, Audio cue, Rationale as collapsed accordions per section
+- [ ] Right col only has internal scroll — other columns fit viewport
+
+**Action row**
+- [ ] 4 buttons in order: Reject, Edit Assets, Export, Approve
+- [ ] Edit mode toggles all `[data-field-path]` elements to `contenteditable`
+- [ ] Amber border appears on editable fields when edit mode active
+- [ ] EDIT MODE ACTIVE badge appears in panel header
+- [ ] Approve button changes to "Save Edits & Dispatch" in edit mode
+- [ ] Cancel Edits reverts all fields and clears `phase1_edited`
+- [ ] Dispatch payload reads from DOM values at click time
+
+**Export panel**
+- [ ] Panel appears above action row (not a full modal)
+- [ ] 3 format buttons: Markdown, Plain text, JSON
+- [ ] Section checkboxes functional
+- [ ] Prepend review prompt toggle functional
+- [ ] Download creates correct filename with job ID and date
+- [ ] Copy to clipboard works
+- [ ] Export uses edited DOM values when edits have been made
+- [ ] Filename preview updates when format changes
+
+**Footer**
+- [ ] Terminal, telemetry, upcoming tasks in 3-column grid
+- [ ] Terminal auto-scrolls on new log line
+- [ ] `appendLog(message, type)` function working
+- [ ] GPU VRAM bars animate on telemetry update
+- [ ] Run time counter ticking when job active
+- [ ] Upcoming tasks shows next 2 queued items
+
+---
+
+*Spark Media Workstation — Opus Coder Dashboard Upgrade Instructions*
+*Preserve all existing backend logic. Upgrade visuals and add missing functional pieces only.*

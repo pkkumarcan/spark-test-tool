@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  dify-db:
+    image: postgres:15-alpine
+    container_name: dify-db
+    restart: always
+    environment:
+      POSTGRES_DB: dify
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dify_password
+    volumes:
+      - dify_db_data:/var/lib/postgresql/data
+      - ./init-langfuse-db.sql:/docker-entrypoint-initdb.d/init-langfuse-db.sql
+    ports:
+      - "${DIFY_DB_PORT:-5432}:5432"
+
+  dify-redis:
+    image: redis:6-alpine
+    container_name: dify-redis
+    restart: always
+    volumes:
+      - dify_redis_data:/data
+    ports:
+      - "${DIFY_REDIS_PORT:-6379}:6379"
+
+  dify-sandbox:
+    image: langgenius/dify-sandbox:latest
+    container_name: dify-sandbox
+    restart: always
+    environment:
+      API_KEY: dify_sandbox_key
+    ports:
+      - "${DIFY_SANDBOX_PORT:-8194}:8194"
+
+  dify-api:
+    image: langgenius/dify-api:latest
+    container_name: dify-api
+    restart: always
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: dify_password
+      DB_HOST: dify-db
+      DB_PORT: 5432
+      DB_DATABASE: dify
+      REDIS_HOST: dify-redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      SECRET_KEY: dify_secret_key_change_me_in_prod
+      CONSOLE_API_URL: http://dify-api:5001
+      CONSOLE_WEB_URL: http://dify-web:80
+      SERVICE_API_URL: http://dify-api:5001
+      APP_API_URL: http://dify-api:5001
+      SANDBOX_HOST: dify-sandbox
+      SANDBOX_PORT: 8194
+      SANDBOX_API_KEY: dify_sandbox_key
+    depends_on:
+      - dify-db
+      - dify-redis
+      - dify-sandbox
+    ports:
+      - "${DIFY_API_PORT:-5001}:5001"
+
+  dify-worker:
+    image: langgenius/dify-api:latest
+    container_name: dify-worker
+    restart: always
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: dify_password
+      DB_HOST: dify-db
+      DB_PORT: 5432
+      DB_DATABASE: dify
+      REDIS_HOST: dify-redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      SECRET_KEY: dify_secret_key_change_me_in_prod
+      SANDBOX_HOST: dify-sandbox
+      SANDBOX_PORT: 8194
+      SANDBOX_API_KEY: dify_sandbox_key
+    depends_on:
+      - dify-db
+      - dify-redis
+      - dify-sandbox
+
+  dify-web:
+    image: langgenius/dify-web:latest
+    container_name: dify-web
+    restart: always
+    environment:
+      CONSOLE_API_URL: http://localhost:${DIFY_API_PORT:-5001}
+      APP_API_URL: http://localhost:${DIFY_API_PORT:-5001}
+    ports:
+      - "${DIFY_WEB_PORT:-8080}:80"
+    depends_on:
+      - dify-api
+
+  langfuse:
+    image: langfuse/langfuse:2
+    container_name: spark-langfuse
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:dify_password@dify-db:5432/langfuse
+      - NEXTAUTH_SECRET=langfuse_nextauth_secret_key
+      - NEXTAUTH_URL=http://localhost:3002
+      - TELEMETRY_ENABLED=false
+      - REDIS_URL=redis://dify-redis:6379/1
+    ports:
+      - "3002:3000"
+    depends_on:
+      - dify-db
+      - dify-redis
+
+volumes:
+  dify_db_data:
+  dify_redis_data:

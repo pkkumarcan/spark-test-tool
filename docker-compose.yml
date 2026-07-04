@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  gateway-app:
+    build: .
+    container_name: spark-gateway
+    ports:
+      - "5050:5050"
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - COMFYUI_URL=http://host.docker.internal:8188
+      - COMFYUI_FALLBACK_URL=http://10.0.0.162:8188
+      - WHISPER_URL=http://whisper-stt:8000
+      - F5_TTS_URL=http://f5-tts:8000
+      - OUTPUT_DIR=/app/output
+      - COMFYUI_OUTPUT_DIR=/comfyui-output
+      - WORKSPACE_ROOT=/workspace/project
+      - SPARK_API_KEY=${SPARK_API_KEY:-}
+    volumes:
+      - .:/workspace/project
+      - ./output:/app/output
+      - /home/pkkumar/spark-factory/ComfyUI/output:/comfyui-output:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    depends_on:
+      - whisper-stt
+      - f5-tts
+
+  whisper-stt:
+    image: onerahmet/openai-whisper-asr-webservice:latest-gpu
+    container_name: spark-whisper
+    ports:
+      - "8010:9000"
+    environment:
+      - ASR_MODEL=large-v3-turbo
+      - ASR_ENGINE=faster_whisper
+      - CUDA_VISIBLE_DEVICES=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: always
+
+  f5-tts:
+    image: climatologist/f5-tts:latest
+    container_name: spark-f5tts
+    ports:
+      - "8020:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=1
+    volumes:
+      - ./model-cache:/model-cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: always

@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spark AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --surface: #1a1a22;
+      --surface2: #22222e;
+      --border: #2a2a36;
+      --text: #e8e8ec;
+      --text-muted: #7a7a8e;
+      --accent: #00e5ff;
+      --accent2: #8b5cf6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --blue: #3b82f6;
+      --orange: #f97316;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    .topbar {
+      height: 52px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .topbar-brand .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .topbar-spacer { flex: 1; }
+    .topbar-btn {
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .topbar-btn:hover { background: #2a2a36; color: var(--text); border-color: #444; }
+    .topbar-btn.primary { background: var(--accent2); color: white; border-color: var(--accent2); }
+    .topbar-model {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      appearance: none;
+    }
+    .topbar-model option { background: var(--surface2); }
+    .topbar-btn.primary:hover { filter: brightness(1.1); }
+
+    .main-layout {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .left-panel {
+      width: 280px;
+      min-width: 280px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.2s;
+    }
+    .left-panel.collapsed { margin-left: -280px; }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .panel-tab:hover { color: var(--text); }
+    .panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .panel-content { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .panel-section { display: none; }
+    .panel-section.active { display: block; }
+
+    .chat-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .chat-item:hover { background: var(--surface2); }
+    .chat-item.active { background: var(--surface2); border-left-color: var(--accent); }
+    .chat-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-item-preview {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-header {
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .file-header button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .file-header button:hover { color: var(--text); }
+
+    .tree-item {
+      padding: 4px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tree-item:hover { background: var(--surface2); color: var(--text); }
+    .tree-item i { font-size: 11px; width: 14px; text-align: center; flex-shrink: 0; }
+    .tree-item .fa-folder { color: var(--yellow); }
+    .tree-children { display: none; }
+    .tree-children.open { display: block; }
+
+    .center-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 0;
+    }
+    .chat-container {
+      max-width: 768px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .msg {
+      margin-bottom: 24px;
+      animation: fadeIn 0.2s ease;
+      max-width: 768px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 24px;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .msg-label {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .msg.user .msg-label { color: var(--accent2); }
+    .msg.agent .msg-label { color: var(--accent); }
+
+    .msg-content {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .msg-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .msg-status.done { color: var(--green); background: rgba(34,197,94,0.1); }
+    .msg-status.thinking { color: var(--yellow); background: rgba(234,179,8,0.1); }
+
+    .msg-content p { margin-bottom: 8px; }
+    .msg-content p:last-child { margin-bottom: 0; }
+    .msg-content code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    .msg-content pre {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+      font-size: 12px;
+      line-height: 1.5;
+      position: relative;
+    }
+    .msg-content pre code { background: none; padding: 0; }
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .code-block-header + pre {
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      margin-top: 0;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: #555; }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    .loading-dots {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .loading-dots span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: dotPulse 1.2s infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+    .approval-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 8px 0;
+      overflow: hidden;
+      font-size: 12px;
+    }
+    .approval-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .approval-header .label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .approval-header .file-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .approval-content {
+      max-height: 200px;
+      overflow: auto;
+      padding: 0;
+      border-top: 1px solid var(--border);
+    }
+    .diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    .diff-table td { padding: 2px 8px; white-space: pre-wrap; }
+    .diff-table tr.diff_add td { background: rgba(34,197,94,0.15); color: var(--green); }
+    .diff-table tr.diff_sub td { background: rgba(239,68,68,0.15); color: var(--red); }
+    .diff-table tr.diff_change td { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .approval-actions {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-approve {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--green);
+      color: #000;
+      transition: all 0.15s;
+    }
+    .btn-approve:hover { filter: brightness(1.1); }
+    .btn-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-reject {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--red);
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--red);
+      transition: all 0.15s;
+    }
+    .btn-reject:hover { background: rgba(239,68,68,0.1); }
+    .btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .right-panel {
+      width: 320px;
+      min-width: 320px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: margin-right 0.2s;
+    }
+    .right-panel.collapsed { margin-right: -320px; }
+
+    .right-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .right-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .right-header .status-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .status-badge.in-progress { background: rgba(0,229,255,0.15); color: var(--accent); }
+
+    .right-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .task-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .task-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .task-id {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--accent);
+      color: #000;
+    }
+    .task-status {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .task-status.active { background: rgba(0,229,255,0.15); color: var(--accent); }
+    .task-status.pending { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .task-status.done { background: rgba(34,197,94,0.15); color: var(--green); }
+    .task-status.blocked { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    .task-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .task-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .task-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .task-file {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.3);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .task-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .task-progress {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .task-progress-bar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .task-progress-bar.green { background: var(--green); }
+    .task-progress-bar.blue { background: var(--blue); }
+    .task-progress-bar.yellow { background: var(--yellow); }
+    .task-progress-bar.gray { background: #555; }
+
+    .subtasks { list-style: none; }
+    .subtasks li {
+      font-size: 12px;
+      padding: 3px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+    .subtasks li .check { font-size: 10px; }
+    .subtasks li .check.done { color: var(--green); }
+    .subtasks li .check.active { color: var(--accent); }
+    .subtasks li .check.pending { color: #555; }
+
+    .input-bar {
+      padding: 12px 24px 20px;
+      flex-shrink: 0;
+    }
+    .input-wrapper {
+      max-width: 768px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .model-select {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .model-select select {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      appearance: none;
+    }
+    .model-select select option { background: var(--surface2); }
+
+    .input-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: flex-end;
+      padding: 10px 14px;
+      transition: border-color 0.2s;
+    }
+    .input-box:focus-within { border-color: var(--accent); }
+    .input-box textarea {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+      max-height: 120px;
+      min-height: 22px;
+      line-height: 1.5;
+      padding: 2px 0;
+    }
+    .input-box textarea::placeholder { color: var(--text-muted); }
+    .shortcut-hints {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .shortcut-hints .hint {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.15s;
+    }
+    .shortcut-hints .hint:hover {
+      background: rgba(0,229,255,0.1);
+      color: var(--accent);
+    }
+    .btn-send {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-left: 8px;
+      transition: all 0.15s;
+    }
+    .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-send.stop { background: var(--red); color: white; }
+
+    .terminal-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .terminal-toggle:hover { color: var(--text); background: var(--surface2); }
+    .terminal-toggle.active { color: var(--accent); }
+    .terminal-toggle i { transition: transform 0.2s; }
+    .terminal-toggle.active i { transform: rotate(180deg); }
+
+    .terminal-panel {
+      height: 0;
+      background: #0a0a12;
+      border-top: 1px solid var(--border);
+      overflow: hidden;
+      transition: height 0.2s ease;
+    }
+    .terminal-panel.open { height: 200px; }
+    .terminal-content {
+      height: 100%;
+      overflow-y: auto;
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #aaa;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .terminal-content .term-error { color: var(--red); }
+    .terminal-content .term-success { color: var(--green); }
+    .terminal-content .term-info { color: var(--accent); }
+    .terminal-content .term-timestamp { color: #555; }
+
+    .editor-tabs-bar {
+      display: none;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      padding: 0 8px;
+      height: 36px;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .editor-tabs-bar.open { display: flex; }
+    .editor-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 12px;
+      height: 100%;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+      position: relative;
+      transition: all 0.15s;
+    }
+    .editor-tab:hover { background: var(--surface2); color: var(--text); }
+    .editor-tab.active {
+      color: var(--text);
+      background: var(--bg);
+      border-bottom: 2px solid var(--accent);
+    }
+    .editor-tab .tab-close {
+      font-size: 10px;
+      padding: 2px;
+      border-radius: 3px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .editor-tab:hover .tab-close { opacity: 1; }
+    .editor-tab .tab-close:hover { background: rgba(239,68,68,0.2); color: var(--red); }
+    .editor-tab .tab-modified {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--yellow);
+      display: none;
+    }
+    .editor-tab.modified .tab-modified { display: inline-block; }
+    .editor-tab.modified .tab-filename { display: none; }
+    .editor-tab.modified .tab-filename-modified { display: inline; }
+    .editor-tab .tab-filename-modified { display: none; }
+    .editor-tabs-spacer { flex: 1; }
+    .btn-save-editor {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-left: 8px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-save-editor:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-save-editor.visible { display: flex; }
+
+    .monaco-editor-wrapper {
+      display: none;
+      flex-direction: column;
+      height: 400px;
+      min-height: 200px;
+      max-height: 60vh;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .monaco-editor-wrapper.open { display: flex; }
+
+    #monaco-container {
+      width: 100%;
+      flex: 1;
+      border: none;
+      min-height: 0;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 768px) {
+      .left-panel { position: fixed; z-index: 100; height: calc(100vh - 52px); top: 52px; }
+      .left-panel:not(.collapsed) { margin-left: 0; }
+      .left-panel.collapsed { margin-left: -280px; }
+      .right-panel { position: fixed; z-index: 100; height: calc(100vh - 52px); top: 52px; right: 0; }
+      .right-panel:not(.collapsed) { margin-right: 0; }
+      .right-panel.collapsed { margin-right: -320px; }
+      .center-panel { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="dot"></div>
+      <span>Spark AI</span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <button class="topbar-btn" onclick="toggleLeftPanel()"><i class="fa-solid fa-bars"></i></button>
+    <button class="topbar-btn" onclick="toggleRightPanel()"><i class="fa-regular fa-calendar"></i> Plan</button>
+    <select class="topbar-model" id="model-select">
+      <option value="qwen3:4b">Qwen 3 4B</option>
+      <option value="qwen3:8b">Qwen 3 8B</option>
+      <option value="gemma4:12b-it-qat">Gemma 4 12B</option>
+      <option value="qwen3:14b">Qwen 3 14B</option>
+      <option value="qwen3.6:27b">Qwen 3.6 27B</option>
+    </select>
+    <button class="topbar-btn primary" onclick="newChat()"><i class="fa-solid fa-plus"></i> New Chat</button>
+    <button class="topbar-btn" onclick="window.location.href='/'"><i class="fa-solid fa-gauge"></i> Dashboard</button>
+  </div>
+
+  <div class="main-layout">
+
+    <div class="left-panel" id="left-panel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" onclick="switchTab('chats')"><i class="fa-regular fa-comment"></i> Chats</div>
+        <div class="panel-tab" onclick="switchTab('files')"><i class="fa-regular fa-folder"></i> Files</div>
+      </div>
+      <div class="panel-content">
+        <div class="panel-section active" id="tab-chats">
+          <div id="chat-list"></div>
+        </div>
+        <div class="panel-section" id="tab-files">
+          <div class="file-header">
+            <span>WORKSPACE</span>
+            <div>
+              <button onclick="promptChangeWorkspace()" title="Change Workspace"><i class="fa-solid fa-folder-open"></i></button>
+              <button onclick="refreshFiles()" title="Refresh"><i class="fa-solid fa-arrows-rotate"></i></button>
+            </div>
+          </div>
+          <div id="file-tree"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="center-panel">
+      <div class="chat-area" id="chat-area">
+        <div class="chat-container" id="chat-container">
+          <div style="text-align:center;padding:80px 20px;color:var(--text-muted);">
+            <i class="fa-solid fa-bolt" style="font-size:40px;color:var(--accent);opacity:0.6;margin-bottom:12px;display:block;"></i>
+            <h2 style="color:var(--text);margin-bottom:6px;">Spark AI</h2>
+            <p>Ask me to build, refactor, or test code.</p>
+          </div>
+        </div>
+      </div>
+      <div class="editor-tabs-bar" id="editor-tabs-bar">
+        <div id="editor-tabs-container"></div>
+        <div class="editor-tabs-spacer"></div>
+        <button class="btn-save-editor" id="btn-save-editor" onclick="saveEditorFile()" title="Save (Ctrl+S)"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+      </div>
+      <div class="monaco-editor-wrapper" id="monaco-wrapper">
+        <div id="monaco-container"></div>
+      </div>
+      <div class="terminal-toggle" id="terminal-toggle" onclick="toggleTerminal()">
+        <i class="fa-solid fa-terminal"></i>
+        <span>Terminal</span>
+      </div>
+      <div class="terminal-panel" id="terminal-panel">
+        <div class="terminal-content" id="terminal-content"></div>
+      </div>
+      <div class="input-bar">
+        <div class="input-wrapper">
+          <div class="input-box">
+            <textarea id="prompt" rows="1" placeholder="Message Spark AI... (try /explain, /test, /plan, @filename)" onkeydown="handleKey(event)"></textarea>
+            <button class="btn-send" id="btn-send" onclick="toggleSend()"><i class="fa-solid fa-arrow-up"></i></button>
+          </div>
+          <div class="shortcut-hints">
+            <span class="hint" onclick="insertShortcut('/explain ')">/explain</span>
+            <span class="hint" onclick="insertShortcut('/test ')">/test</span>
+            <span class="hint" onclick="insertShortcut('/plan ')">/plan</span>
+            <span class="hint" onclick="insertShortcut('/refactor ')">/refactor</span>
+            <span class="hint" onclick="insertShortcut('@')">@file</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel" id="right-panel">
+      <div class="right-header">
+        <h3><i class="fa-regular fa-calendar"></i> Plan & Tasks</h3>
+        <span class="status-badge in-progress" id="plan-status" style="display:none;">In Progress</span>
+      </div>
+      <div id="token-counter" style="padding:6px 14px;font-size:10px;color:var(--text-muted);border-bottom:1px solid var(--border);display:none;">
+        <span id="token-info"></span>
+      </div>
+      <div class="right-body" id="tasks-container">
+        <div style="text-align:center;padding:40px 16px;color:var(--text-muted);font-size:13px;">
+          No active plan. Start a task to see the plan.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let sessionId = crypto.randomUUID();
+    let sessions = JSON.parse(localStorage.getItem('spark_sessions') || '[]');
+    let activeSessionIdx = parseInt(localStorage.getItem('spark_active_session') || '-1');
+    let isGenerating = false;
+    let eventSource = null;
+    let totalTokensUsed = 0;
+    let welcomeHtml = document.getElementById('chat-container').innerHTML;
+
+    let monacoEditor = null;
+    let openTabs = [];
+    let activeTabPath = null;
+
+    const langMap = {
+      'js': 'javascript', 'jsx': 'javascript', 'ts': 'typescript', 'tsx': 'typescript',
+      'py': 'python', 'rb': 'ruby', 'java': 'java', 'go': 'go', 'rs': 'rust',
+      'c': 'c', 'cpp': 'cpp', 'cs': 'csharp', 'h': 'c', 'hpp': 'cpp',
+      'html': 'html', 'htm': 'html', 'css': 'css', 'scss': 'scss', 'less': 'less',
+      'json': 'json', 'yaml': 'yaml', 'yml': 'yaml', 'xml': 'xml', 'toml': 'ini',
+      'sql': 'sql', 'sh': 'shell', 'bash': 'shell', 'zsh': 'shell',
+      'md': 'markdown', 'txt': 'plaintext', 'log': 'plaintext',
+      'vue': 'html', 'svelte': 'html', 'php': 'php', 'swift': 'swift',
+      'kt': 'kotlin', 'dart': 'dart', 'r': 'r', 'lua': 'lua',
+      'dockerfile': 'dockerfile', 'makefile': 'makefile'
+    };
+
+    function getLangFromPath(path) {
+      const ext = path.split('.').pop().toLowerCase();
+      return langMap[ext] || 'plaintext';
+    }
+
+    function getFilenameFromPath(path) {
+      return path.split('/').pop();
+    }
+
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+
+    require(['vs/editor/editor.main'], function () {
+      monaco.editor.defineTheme('spark-dark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [],
+        colors: {
+          'editor.background': '#0f0f14',
+          'editor.foreground': '#e8e8ec',
+          'editor.lineHighlightBackground': '#1a1a22',
+          'editor.selectionBackground': '#264f78',
+          'editorCursor.foreground': '#00e5ff',
+          'editorLineNumber.foreground': '#555',
+          'editorLineNumber.activeForeground': '#aaa'
+        }
+      });
+
+      monacoEditor = monaco.editor.create(document.getElementById('monaco-container'), {
+        value: '',
+        language: 'plaintext',
+        theme: 'spark-dark',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 13,
+        minimap: { enabled: false },
+        automaticLayout: true,
+        readOnly: false,
+        scrollBeyondLastLine: false,
+        wordWrap: 'on',
+        padding: { top: 12 },
+        renderLineHighlight: 'all',
+        cursorBlinking: 'smooth',
+        smoothScrolling: true
+      });
+
+      monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
+        saveEditorFile();
+      });
+
+      monacoEditor.onDidChangeModelContent(function () {
+        if (activeTabPath) {
+          const tab = openTabs.find(t => t.path === activeTabPath);
+          if (tab && !tab.modified) {
+            tab.modified = true;
+            renderEditorTabs();
+          }
+        }
+      });
+    });
+
+    function openFileInEditor(path) {
+      fetch(`/api/ide/file?path=${encodeURIComponent(path)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.status !== 'ok') {
+            showToast('Failed to load file');
+            return;
+          }
+          const existing = openTabs.find(t => t.path === path);
+          if (!existing) {
+            openTabs.push({ path, modified: false, content: data.content });
+          } else {
+            existing.content = data.content;
+            existing.modified = false;
+          }
+          activeTabPath = path;
+          const lang = getLangFromPath(path);
+          const model = monaco.editor.createModel(data.content, lang);
+          monacoEditor.setModel(model);
+          document.getElementById('monaco-wrapper').classList.add('open');
+          document.getElementById('editor-tabs-bar').classList.add('open');
+          document.getElementById('btn-save-editor').classList.add('visible');
+          renderEditorTabs();
+        })
+        .catch(() => showToast('Error loading file'));
+    }
+
+    function switchEditorTab(path) {
+      const tab = openTabs.find(t => t.path === path);
+      if (!tab) return;
+      if (activeTabPath) {
+        const prevTab = openTabs.find(t => t.path === activeTabPath);
+        if (prevTab) prevTab.content = monacoEditor.getValue();
+      }
+      activeTabPath = path;
+      const lang = getLangFromPath(path);
+      const model = monaco.editor.createModel(tab.content, lang);
+      monacoEditor.setModel(model);
+      renderEditorTabs();
+    }
+
+    function closeEditorTab(path) {
+      const idx = openTabs.findIndex(t => t.path === path);
+      if (idx === -1) return;
+      openTabs.splice(idx, 1);
+      if (activeTabPath === path) {
+        if (openTabs.length > 0) {
+          const nextIdx = Math.min(idx, openTabs.length - 1);
+          activeTabPath = openTabs[nextIdx].path;
+          switchEditorTab(activeTabPath);
+        } else {
+          activeTabPath = null;
+          document.getElementById('monaco-wrapper').classList.remove('open');
+          document.getElementById('editor-tabs-bar').classList.remove('open');
+          document.getElementById('btn-save-editor').classList.remove('visible');
+        }
+      }
+      renderEditorTabs();
+    }
+
+    function renderEditorTabs() {
+      const container = document.getElementById('editor-tabs-container');
+      container.innerHTML = '';
+      container.style.display = 'flex';
+      container.style.height = '100%';
+      openTabs.forEach(tab => {
+        const div = document.createElement('div');
+        div.className = 'editor-tab' + (tab.path === activeTabPath ? ' active' : '') + (tab.modified ? ' modified' : '');
+        div.innerHTML = `
+          <span class="tab-modified"></span>
+          <i class="fa-regular fa-file" style="font-size:10px;"></i>
+          <span class="tab-filename">${getFilenameFromPath(tab.path)}</span>
+          <span class="tab-filename-modified">${getFilenameFromPath(tab.path)}</span>
+          <span class="tab-close" onclick="event.stopPropagation();closeEditorTab('${tab.path}')"><i class="fa-solid fa-xmark"></i></span>
+        `;
+        div.onclick = () => switchEditorTab(tab.path);
+        container.appendChild(div);
+      });
+    }
+
+    async function saveEditorFile() {
+      if (!activeTabPath || !monacoEditor) return;
+      const content = monacoEditor.getValue();
+      try {
+        const resp = await fetch('/api/ide/file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: activeTabPath, content })
+        });
+        const data = await resp.json();
+        if (data.status === 'ok') {
+          const tab = openTabs.find(t => t.path === activeTabPath);
+          if (tab) {
+            tab.modified = false;
+            tab.content = content;
+          }
+          renderEditorTabs();
+          showToast('File saved');
+        } else {
+          showToast('Failed to save file');
+        }
+      } catch {
+        showToast('Error saving file');
+      }
+    }
+
+    function saveSessions() {
+      localStorage.setItem('spark_sessions', JSON.stringify(sessions));
+      localStorage.setItem('spark_active_session', String(activeSessionIdx));
+    }
+
+    function updateTokenCounter(tokens) {
+      totalTokensUsed += tokens;
+      const el = document.getElementById('token-counter');
+      const info = document.getElementById('token-info');
+      if (el && info && totalTokensUsed > 0) {
+        el.style.display = 'block';
+        const pct = Math.min(100, Math.round((totalTokensUsed / 32000) * 100));
+        info.textContent = `${totalTokensUsed.toLocaleString()} tokens / ${pct}% used`;
+      }
+    }
+
+    const chatContainer = document.getElementById('chat-container');
+    const chatArea = document.getElementById('chat-area');
+    const promptEl = document.getElementById('prompt');
+    const btnSend = document.getElementById('btn-send');
+    const tasksContainer = document.getElementById('tasks-container');
+    const terminalContent = document.getElementById('terminal-content');
+
+    promptEl.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    function insertShortcut(shortcut) {
+      promptEl.value = shortcut;
+      promptEl.focus();
+      promptEl.setSelectionRange(shortcut.length, shortcut.length);
+    }
+
+    function handleKey(e) {
+      if ((e.key === 'Enter' && !e.shiftKey) || (e.key === 'Enter' && e.ctrlKey)) {
+        e.preventDefault();
+        toggleSend();
+      }
+      if (e.key === 'k' && e.ctrlKey) {
+        e.preventDefault();
+        promptEl.focus();
+      }
+      if (e.key === 'n' && e.ctrlKey) {
+        e.preventDefault();
+        newChat();
+      }
+    }
+
+    function toggleLeftPanel() { document.getElementById('left-panel').classList.toggle('collapsed'); }
+    function toggleRightPanel() { document.getElementById('right-panel').classList.toggle('collapsed'); }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
+      document.querySelector(`.panel-tab:${tab === 'chats' ? 'first-child' : 'last-child'}`).classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+    }
+
+    function newChat() {
+      sessionId = crypto.randomUUID();
+      sessions.unshift({ id: sessionId, title: 'New Chat', messages: [] });
+      activeSessionIdx = 0;
+      chatContainer.innerHTML = welcomeHtml;
+      renderChatList();
+      saveSessions();
+      promptEl.focus();
+    }
+
+    function selectSession(idx) {
+      activeSessionIdx = idx;
+      sessionId = sessions[idx].id;
+      chatContainer.innerHTML = '';
+      if (sessions[idx].messages.length === 0) {
+        chatContainer.innerHTML = welcomeHtml;
+      } else {
+        sessions[idx].messages.forEach(m => appendMsg(m.role, m.html, false));
+      }
+      renderChatList();
+      saveSessions();
+      applyHighlighting();
+    }
+
+    function renderChatList() {
+      const list = document.getElementById('chat-list');
+      list.innerHTML = '';
+      sessions.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = `chat-item${i === activeSessionIdx ? ' active' : ''}`;
+        div.innerHTML = `<div class="chat-item-title">${escHtml(s.title)}</div><div class="chat-item-preview">${s.messages.length > 0 ? stripHtml(s.messages[s.messages.length - 1].html).substring(0, 50) : 'Start a conversation...'}</div>`;
+        div.onclick = () => selectSession(i);
+        list.appendChild(div);
+      });
+    }
+
+    function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function sanitizeHtml(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      tmp.querySelectorAll('script,iframe,object,embed,form,input,textarea,button,link,meta').forEach(el => el.remove());
+      tmp.querySelectorAll('[onclick],[onerror],[onload],[onmouseover]').forEach(el => {
+        el.removeAttribute('onclick');
+        el.removeAttribute('onerror');
+        el.removeAttribute('onload');
+        el.removeAttribute('onmouseover');
+      });
+      return tmp.innerHTML;
+    }
+    function stripHtml(html) { const d = document.createElement('div'); d.innerHTML = html; return d.textContent; }
+    function md(text) {
+      try {
+        return marked.parse(text);
+      } catch {
+        return escHtml(text);
+      }
+    }
+
+    function applyHighlighting() {
+      document.querySelectorAll('pre code').forEach(block => {
+        if (!block.dataset.highlighted) {
+          hljs.highlightElement(block);
+          block.dataset.highlighted = 'true';
+        }
+      });
+    }
+
+    function addCopyButtonToCodeBlocks() {
+      document.querySelectorAll('.msg-content pre').forEach(pre => {
+        if (pre.dataset.copyAdded) return;
+        pre.dataset.copyAdded = 'true';
+        const codeEl = pre.querySelector('code');
+        const langMatch = codeEl ? codeEl.className.match(/language-(\w+)/) : null;
+        const lang = langMatch ? langMatch[1] : 'code';
+        const header = document.createElement('div');
+        header.className = 'code-block-header';
+        header.innerHTML = `<span>${lang}</span><button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button>`;
+        pre.parentNode.insertBefore(header, pre);
+      });
+    }
+
+    function copyCode(btn) {
+      const pre = btn.closest('.code-block-header').nextElementSibling;
+      const codeEl = pre.querySelector('code');
+      const text = codeEl ? codeEl.textContent : pre.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    function appendMsg(role, html, save = true) {
+      const wrapper = document.getElementById('chat-container');
+      const welcome = wrapper.querySelector('[style*="text-align:center"]');
+      if (welcome) welcome.remove();
+
+      const isUser = role === 'user';
+      const msg = document.createElement('div');
+      msg.className = `msg ${role}`;
+      const modelName = document.getElementById('model-select')?.selectedOptions[0]?.text || 'Spark AI';
+      const label = isUser ? 'PK' : modelName;
+      msg.innerHTML = `
+        <div class="msg-label">${label}</div>
+        <div class="msg-content">${html}</div>
+      `;
+      wrapper.appendChild(msg);
+      chatArea.scrollTop = chatArea.scrollHeight;
+
+      if (save && activeSessionIdx >= 0) {
+        sessions[activeSessionIdx].messages.push({ role, html });
+        saveSessions();
+      }
+      applyHighlighting();
+      addCopyButtonToCodeBlocks();
+      return msg;
+    }
+
+    function addStatusBadge(parentMsg, type, text) {
+      const bubble = parentMsg.querySelector('.msg-content');
+      const badge = document.createElement('div');
+      badge.className = `msg-status ${type}`;
+      badge.innerHTML = `<i class="fa-solid fa-${type === 'done' ? 'check' : 'spinner fa-spin'}"></i> ${text}`;
+      bubble.insertBefore(badge, bubble.firstChild);
+    }
+
+    function toggleTerminal() {
+      const panel = document.getElementById('terminal-panel');
+      const toggle = document.getElementById('terminal-toggle');
+      panel.classList.toggle('open');
+      toggle.classList.toggle('active');
+    }
+
+    function addTerminalLog(message, isError) {
+      const entry = document.createElement('div');
+      const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+      entry.className = isError ? 'term-error' : '';
+      entry.innerHTML = `<span class="term-timestamp">[${timestamp}]</span> ${escHtml(message)}`;
+      terminalContent.appendChild(entry);
+      terminalContent.scrollTop = terminalContent.scrollHeight;
+    }
+
+    function toggleSend() {
+      if (isGenerating) { stopGeneration(); return; }
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const text = promptEl.value.trim();
+      if (!text) return;
+
+      promptEl.value = '';
+      promptEl.style.height = 'auto';
+
+      if (activeSessionIdx >= 0 && sessions[activeSessionIdx].messages.length === 0) {
+        sessions[activeSessionIdx].title = text.substring(0, 60);
+        renderChatList();
+      }
+
+      appendMsg('user', `<p>${escHtml(text)}</p>`);
+
+      isGenerating = true;
+      btnSend.innerHTML = '<i class="fa-solid fa-stop"></i>';
+      btnSend.classList.add('stop');
+
+      const model = document.getElementById('model-select').value;
+      const agentMsg = appendMsg('agent', '<div class="loading-dots"><span></span><span></span><span></span></div>', false);
+      addStatusBadge(agentMsg, 'thinking', 'Thinking...');
+
+      try {
+        const url = `/api/orchestrator/code/stream?task=${encodeURIComponent(text)}&model=${encodeURIComponent(model)}&session_id=${sessionId}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let bubble = agentMsg.querySelector('.msg-content');
+        let gotContent = false;
+        let accumulatedText = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const blocks = buffer.split('\n\n');
+          buffer = blocks.pop();
+
+          for (const block of blocks) {
+            let eventType = '';
+            let dataStr = '';
+            for (const line of block.split('\n')) {
+              if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+              if (line.startsWith('data: ')) dataStr = line.slice(6);
+            }
+            if (!dataStr) continue;
+            try {
+              const evt = JSON.parse(dataStr);
+              evt.type = evt.type || eventType;
+              handleEvent(evt, agentMsg, bubble, gotContent);
+              if (evt.type === 'text' && evt.content) {
+                gotContent = true;
+                accumulatedText += evt.content;
+              }
+            } catch {}
+          }
+        }
+
+        if (!gotContent && bubble.querySelector('.loading-dots')) {
+          bubble.querySelector('.loading-dots').remove();
+          bubble.innerHTML += '<p style="color:var(--text-muted)">Task completed.</p>';
+        }
+
+        const statusBadge = agentMsg.querySelector('.msg-status');
+        if (statusBadge) {
+          statusBadge.className = 'msg-status done';
+          statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> Done';
+        }
+
+        if (activeSessionIdx >= 0) {
+          sessions[activeSessionIdx].messages.push({ role: 'agent', html: bubble.innerHTML });
+          saveSessions();
+        }
+        applyHighlighting();
+        addCopyButtonToCodeBlocks();
+      } catch (err) {
+        const bubble = agentMsg.querySelector('.msg-content');
+        bubble.innerHTML = `<p style="color:var(--red)">Error: ${escHtml(err.message)}</p>`;
+      }
+
+      isGenerating = false;
+      btnSend.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+      btnSend.classList.remove('stop');
+      promptEl.focus();
+      const allText = Array.from(chatContainer.querySelectorAll('.msg-content')).map(el => el.textContent).join('');
+      updateTokenCounter(Math.ceil(allText.length / 4) - totalTokensUsed);
+      refreshFiles();
+      updateTasksPanel();
+    }
+
+    function stopGeneration() {
+      if (eventSource) { eventSource.close(); eventSource = null; }
+      isGenerating = false;
+      btnSend.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+      btnSend.classList.remove('stop');
+    }
+
+    function handleEvent(evt, agentMsg, bubble, gotContent) {
+      const msg = evt.content || evt.message || '';
+      switch (evt.type) {
+        case 'log':
+          if (msg) {
+            const loading = bubble.querySelector('.loading-dots');
+            if (loading) loading.remove();
+            addTerminalLog(msg, msg.includes('error') || msg.includes('❌'));
+          }
+          break;
+        case 'terminal_log':
+          if (msg) {
+            const loading = bubble.querySelector('.loading-dots');
+            if (loading) loading.remove();
+            addTerminalLog(msg, evt.is_error);
+          }
+          break;
+        case 'plan':
+          if (msg) {
+            const loading = bubble.querySelector('.loading-dots');
+            if (loading) loading.remove();
+            updatePlanFromText(msg);
+          }
+          break;
+        case 'status':
+          {
+            const statusBadge = agentMsg.querySelector('.msg-status');
+            if (statusBadge) {
+              if (evt.status === 'completed' || evt.status === 'finished') {
+                statusBadge.className = 'msg-status done';
+                statusBadge.innerHTML = `<i class="fa-solid fa-check"></i>`;
+              } else if (msg) {
+                statusBadge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${escHtml(msg)}`;
+              } else if (evt.resolution) {
+                statusBadge.className = 'msg-status done';
+                statusBadge.innerHTML = `<i class="fa-solid fa-check"></i>`;
+              }
+            }
+          }
+          break;
+        case 'awaiting_file_write':
+        case 'awaiting_command_run':
+          showApproval(evt, bubble);
+          break;
+        case 'token':
+          if (evt.content) {
+            const loading = bubble.querySelector('.loading-dots');
+            if (loading) loading.remove();
+            if (!bubble.querySelector('.streaming-text')) {
+              const span = document.createElement('span');
+              span.className = 'streaming-text';
+              bubble.appendChild(span);
+            }
+            bubble.querySelector('.streaming-text').textContent += evt.content;
+            chatArea.scrollTop = chatArea.scrollHeight;
+          }
+          break;
+        case 'text':
+          if (evt.content) {
+            const loading = bubble.querySelector('.loading-dots');
+            if (loading) loading.remove();
+            const streamingEl = bubble.querySelector('.streaming-text');
+            if (streamingEl) streamingEl.remove();
+            bubble.innerHTML += md(evt.content);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            applyHighlighting();
+            addCopyButtonToCodeBlocks();
+          }
+          break;
+      }
+    }
+
+    function showApproval(evt, bubble) {
+      const loading = bubble.querySelector('.loading-dots');
+      if (loading) loading.remove();
+      const isWrite = evt.type === 'awaiting_file_write';
+      const card = document.createElement('div');
+      card.className = 'approval-card';
+
+      const filePath = evt.path || evt.command || '';
+      let contentHtml = '';
+
+      if (isWrite && evt.diff) {
+        contentHtml = `<div class="approval-content" style="max-height:300px;overflow:auto;">${sanitizeHtml(evt.diff)}</div>`;
+      } else if (evt.content) {
+        contentHtml = `<div class="approval-content"><pre style="padding:10px;margin:0;font-size:11px;white-space:pre-wrap;word-break:break-word;">${escHtml(evt.content)}</pre></div>`;
+      }
+
+      card.innerHTML = `
+        <div class="approval-header">
+          <span class="label" style="color:${isWrite ? 'var(--accent)' : 'var(--yellow)'}">
+            <i class="fa-solid fa-${isWrite ? 'file-pen' : 'terminal'}"></i>
+            ${isWrite ? 'FILE WRITE' : 'COMMAND RUN'}
+          </span>
+          <span class="file-path">${escHtml(filePath)}</span>
+        </div>
+        ${contentHtml}
+        <div class="approval-actions">
+          <button class="btn-approve" onclick="doApprove(this,'${evt.session_id || sessionId}')">Approve</button>
+          <button class="btn-reject" onclick="doReject(this,'${evt.session_id || sessionId}')">Reject</button>
+        </div>
+      `;
+      bubble.appendChild(card);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    async function doApprove(btn, sid) {
+      btn.disabled = true;
+      btn.textContent = 'Approved';
+      const card = btn.closest('.approval-card');
+      card.querySelectorAll('button').forEach(b => b.disabled = true);
+      await fetch('/api/orchestrator/code/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sid })
+      }).catch(() => {});
+    }
+
+    async function doReject(btn, sid) {
+      btn.disabled = true;
+      btn.textContent = 'Rejected';
+      const card = btn.closest('.approval-card');
+      card.querySelectorAll('button').forEach(b => b.disabled = true);
+      await fetch('/api/orchestrator/code/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sid, feedback: 'Rejected by user.' })
+      }).catch(() => {});
+    }
+
+    function addLogBlock(parentMsg, text, type = 'info') {
+      const bubble = parentMsg.querySelector('.msg-content');
+      const log = document.createElement('div');
+      log.style.cssText = 'background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin:6px 0;font-size:12px;font-family:JetBrains Mono,monospace;color:var(--text-muted);max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word;';
+      if (type === 'error') log.style.color = 'var(--red)';
+      if (type === 'success') log.style.color = 'var(--green)';
+      log.textContent = text;
+      bubble.appendChild(log);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function addThoughtBlock(parentMsg, text, isError = false) {
+      const bubble = parentMsg.querySelector('.msg-content');
+      const thought = document.createElement('details');
+      thought.className = 'thought-block';
+      thought.style.cssText = 'margin:4px 0;font-size:12px;';
+      const color = isError ? 'var(--red)' : 'var(--text-muted)';
+      thought.innerHTML = `<summary style="cursor:pointer;color:${color};font-family:JetBrains Mono,monospace;user-select:none;">${escHtml(text.substring(0, 80))}${text.length > 80 ? '...' : ''}</summary><pre style="background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;padding:8px;margin:4px 0;font-size:11px;color:var(--text-muted);max-height:150px;overflow:auto;white-space:pre-wrap;word-break:break-word;">${escHtml(text)}</pre>`;
+      bubble.appendChild(thought);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    let planTasks = [];
+
+    function updatePlanFromText(text) {
+      const lines = text.split('\n').filter(l => l.trim());
+      planTasks = [];
+      let currentTask = null;
+      lines.forEach(line => {
+        const taskMatch = line.match(/^[\s]*[-*]\s*\**Task\s*(\d+)[\s:：-]+\s*(.+)/i);
+        if (taskMatch) {
+          if (currentTask) planTasks.push(currentTask);
+          currentTask = {
+            id: `T${taskMatch[1]}`,
+            title: taskMatch[2].replace(/\*+/g, '').trim(),
+            desc: '',
+            status: 'pending',
+            files: [],
+            subtasks: [],
+            progress: 0
+          };
+        } else if (currentTask) {
+          const subMatch = line.match(/^[\s]*[-*]\s*\[?( |x|✓)\]?\s*(.+)/);
+          if (subMatch) {
+            currentTask.subtasks.push({
+              done: subMatch[1] === 'x' || subMatch[1] === '✓',
+              text: subMatch[2].trim()
+            });
+          } else {
+            currentTask.desc += (currentTask.desc ? ' ' : '') + line.trim().replace(/\*+/g, '');
+          }
+        }
+      });
+      if (currentTask) planTasks.push(currentTask);
+
+      if (planTasks.length > 0) {
+        document.getElementById('plan-status').style.display = '';
+        renderTasks();
+      }
+    }
+
+    function updateTasksPanel() {
+      if (planTasks.length === 0) {
+        document.getElementById('plan-status').style.display = 'none';
+      }
+    }
+
+    function renderTasks() {
+      tasksContainer.innerHTML = '';
+      if (planTasks.length === 0) {
+        tasksContainer.innerHTML = '<div style="text-align:center;padding:40px 16px;color:var(--text-muted);font-size:13px;">No active plan.</div>';
+        return;
+      }
+      planTasks.forEach(t => {
+        const doneCount = t.subtasks.filter(s => s.done).length;
+        const total = t.subtasks.length;
+        const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+        const isActive = t.status === 'active' || (t.status === 'pending' && planTasks.indexOf(t) === planTasks.findIndex(x => x.status !== 'done'));
+
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.innerHTML = `
+          <div class="task-card-header">
+            <span class="task-id">${t.id}</span>
+            <span class="task-status ${isActive ? 'active' : t.status}">${isActive ? 'Active' : t.status.charAt(0).toUpperCase() + t.status.slice(1)}</span>
+          </div>
+          <div class="task-title">${escHtml(t.title)}</div>
+          ${t.desc ? `<div class="task-desc">${escHtml(t.desc)}</div>` : ''}
+          ${total > 0 ? `
+            <div class="task-progress"><div class="task-progress-bar ${pct === 100 ? 'green' : pct > 0 ? 'blue' : 'gray'}" style="width:${pct}%"></div></div>
+          ` : ''}
+          ${total > 0 ? `
+            <ul class="subtasks">
+              ${t.subtasks.map(s => `<li><span class="check ${s.done ? 'done' : isActive && !s.done ? 'active' : 'pending'}"><i class="fa-solid fa-${s.done ? 'check-circle' : 'circle'}"></i></span> ${escHtml(s.text)}</li>`).join('')}
+            </ul>
+          ` : ''}
+        `;
+        tasksContainer.appendChild(card);
+      });
+    }
+
+    async function promptChangeWorkspace() {
+      const resp = await fetch('/api/ide/workspace');
+      const data = await resp.json();
+      const current = data.workspace_root || '';
+      const newPath = prompt('Enter workspace folder path:', current);
+      if (!newPath || newPath.trim() === current) return;
+
+      try {
+        const r = await fetch('/api/ide/workspace', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: newPath.trim() })
+        });
+        const d = await r.json();
+        if (r.ok && d.status === 'ok') {
+          showToast(`Workspace: ${d.workspace_root}`);
+          refreshFiles();
+        } else {
+          showToast(`Error: ${d.detail || 'Failed'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Failed to connect', 'error');
+      }
+    }
+
+    async function refreshFiles() {
+      try {
+        const resp = await fetch('/api/ide/files');
+        const data = await resp.json();
+        if (data.status === 'ok') renderTree(data.files);
+      } catch (err) { console.error('Files error:', err); }
+    }
+
+    function renderTree(nodes) {
+      const container = document.getElementById('file-tree');
+      container.innerHTML = '';
+      nodes.forEach(n => container.appendChild(createNode(n)));
+    }
+
+    function createNode(node) {
+      const wrapper = document.createElement('div');
+      const item = document.createElement('div');
+      item.className = 'tree-item';
+      if (node.type === 'directory') {
+        item.innerHTML = `<i class="fa-solid fa-folder"></i> <span>${node.name}</span>`;
+        const children = document.createElement('div');
+        children.className = 'tree-children';
+        if (node.children) node.children.forEach(c => children.appendChild(createNode(c)));
+        item.onclick = (e) => { e.stopPropagation(); children.classList.toggle('open'); };
+        wrapper.appendChild(item);
+        wrapper.appendChild(children);
+      } else {
+        item.innerHTML = `<i class="fa-regular fa-file"></i> <span>${node.name}</span>`;
+        item.onclick = (e) => { e.stopPropagation(); openFileInEditor(node.path); };
+        wrapper.appendChild(item);
+      }
+      return wrapper;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    if (window.innerWidth < 768) {
+      document.getElementById('left-panel').classList.add('collapsed');
+    }
+
+    if (sessions.length > 0 && activeSessionIdx >= 0 && activeSessionIdx < sessions.length) {
+      renderChatList();
+      selectSession(activeSessionIdx);
+    } else {
+      newChat();
+    }
+    refreshFiles();
+    promptEl.focus();
+  </script>
+</body>
+</html>

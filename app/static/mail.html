@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Mail Organizer - Phase 1 Sync</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/mobile.css">
+<style>
+  :root {
+    --bg: #0b0b13; 
+    --card: rgba(22, 22, 38, 0.7); 
+    --border: rgba(42, 42, 74, 0.4);
+    --accent: #00f0ff; 
+    --accent2: #8b00ff; 
+    --text: #f0f0f5;
+    --text-muted: #8a8a9e;
+    --green: #00ff88; 
+    --red: #ff3366; 
+    --yellow: #ffb700;
+    --glass: rgba(16, 16, 28, 0.6);
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body { 
+    font-family: 'Outfit', system-ui, sans-serif; 
+    background: radial-gradient(circle at top right, #1b0c36, var(--bg));
+    color: var(--text); 
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 50px;
+  }
+  
+  .header { 
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    padding: 16px 28px; 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+  }
+  
+  .header h1 { 
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px; 
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); 
+    -webkit-background-clip: text; 
+    background-clip: text;
+    -webkit-text-fill-color: transparent; 
+  }
+
+  .nav-back {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s ease;
+  }
+  .nav-back:hover { color: var(--text); }
+  
+  .main-container {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .card { 
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    padding: 24px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+  }
+  
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-card .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .stat-card .val {
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    color: #fff;
+  }
+
+  .progress-container {
+    margin-bottom: 20px;
+  }
+
+  .progress-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .progress-bg {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    height: 12px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .btn { 
+    padding: 12px 28px; 
+    border: none; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all 0.25s ease; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px;
+  }
+  
+  .btn-primary { 
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); 
+    color: #000;
+    font-weight: 700;
+  }
+  .btn-primary:hover { 
+    opacity: 0.95; 
+    transform: translateY(-1.5px); 
+    box-shadow: 0 4px 16px rgba(0, 240, 255, 0.3);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+  .console {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    color: var(--green);
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    text-align: left;
+    line-height: 1.5;
+  }
+
+  /* Inbox list table */
+  .search-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  input[type="text"], select {
+    padding: 12px 16px; 
+    background: rgba(0, 0, 0, 0.4); 
+    border: 1px solid var(--border);
+    border-radius: 10px; 
+    color: var(--text); 
+    font-size: 14px; 
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  input[type="text"]:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0, 240, 255, 0.2); }
+  select option {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+  .badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .badge-category { background: rgba(139,0,255,0.15); color: #c48fff; border: 1px solid rgba(139,0,255,0.3); }
+  .badge-status { background: rgba(0,240,255,0.15); color: var(--accent); border: 1px solid rgba(0,240,255,0.3); }
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SPARK MAIL ORGANIZER</h1>
+  <a href="/" class="nav-back">← Back to Media Factory</a>
+</div>
+
+<div class="main-container">
+  
+  <!-- PHASE 1 CONTROLS & STATUS -->
+  <div class="card">
+    <div class="card-title">✉ Database & Header Sync (Phase 1)</div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Sync Status</div>
+        <div class="val" id="sync-status-txt" style="color: var(--yellow);">Stopped</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Synced UIDs</div>
+        <div class="val" id="synced-count">0 / 0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Sync Speed</div>
+        <div class="val" id="sync-speed">0.0 u/s</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Database Size</div>
+        <div class="val" id="db-size">0.00 MB</div>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-label-row">
+        <span>SQLite Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px;">
+        <label for="sync-folder" style="display: block; font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.5px;">Select Mail Folder</label>
+        <select id="sync-folder" style="width: 100%;">
+          <option value="INBOX">INBOX (Loading...)</option>
+        </select>
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <label for="sync-segment" style="display: block; font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.5px;">Select Date Segment</label>
+        <select id="sync-segment" style="width: 100%;">
+          <option value="all">All (Full History)</option>
+          <option value="2023-2026">2023 - 2026</option>
+          <option value="2018-2022">2018 - 2022</option>
+          <option value="2013-2017">2013 - 2017</option>
+          <option value="2007-2012">2007 - 2012</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="startSync()" id="btn-start">Start Sync</button>
+      <button class="btn btn-secondary" onclick="stopSync()" id="btn-stop" disabled>Pause Sync</button>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="startCleanup()" id="btn-cleanup" style="background: linear-gradient(135deg, var(--accent2), #ff007f); color: #fff;">Run Bulk Cleanup</button>
+        <a href="/mail/preview" class="btn btn-secondary" style="text-decoration: none; border-color: var(--accent2);">Preview Cleanup</a>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer; user-select: none;">
+          <input type="checkbox" id="cleanup-fast-mode" checked style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent);">
+          <span>Skip Unsubscribe (Fast Mode)</span>
+        </label>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); margin-bottom: 12px;">
+      <input type="text" id="deep-purge-input" placeholder="Enter sender email to Deep Purge (e.g., spammer@domain.com)" style="flex: 1; max-width: 450px;">
+      <button class="btn btn-primary" onclick="triggerDeepPurge()" style="background: linear-gradient(135deg, var(--accent2), #ff3366); color: #fff;">Deep Server Purge</button>
+    </div>
+
+    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+      <input type="text" id="keyword-search-input" placeholder="Enter keyword to search (e.g., groupon)" style="flex: 1; max-width: 450px;" onkeydown="if(event.key==='Enter') searchKeywordSegments()">
+      <button class="btn btn-primary" onclick="searchKeywordSegments()" id="btn-keyword-search" style="background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000;">Search Keyword</button>
+    </div>
+
+    <!-- Keyword segments breakdown container -->
+    <div id="keyword-breakdown-container" style="display: none; margin-bottom: 24px; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px;">
+      <div style="font-weight: 700; color: var(--accent); font-size: 13px; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Keyword Search Breakdown</div>
+      <div id="keyword-segments-list" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+
+    <label style="margin-bottom: 6px;">Live Sync Console Logs</label>
+    <div class="console" id="log-console">Logs will display here when sync starts...</div>
+  </div>
+
+  <!-- TOP SENDERS SUMMARY -->
+  <div class="card">
+    <div class="card-title">📊 Top Active Senders</div>
+    <div style="overflow-x: auto;">
+      <table style="margin-bottom: 0;">
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-senders" onclick="toggleAllSenders(this)"></th>
+            <th>Sender</th>
+            <th style="width: 150px; text-align: right;">Active Email Count</th>
+            <th style="width: 180px; text-align: center;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="sender-table-body">
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">
+              Loading top senders...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top: 16px; display: flex; justify-content: flex-start;">
+      <button class="btn btn-primary" id="btn-purge-selected" onclick="purgeSelectedSenders()" style="background: linear-gradient(135deg, var(--accent2), #ff007f); color: #fff;">Purge Selected Senders</button>
+    </div>
+  </div>
+
+  <!-- BROWSE SYNCED HEADERS -->
+  <div class="card">
+    <div class="card-title">📁 Browse Synced Email Headers</div>
+    
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Search by sender or subject..." onkeydown="if(event.key==='Enter') searchEmails()">
+      <button class="btn btn-secondary" onclick="searchEmails()">Search</button>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 80px;">UID</th>
+            <th style="width: 250px;">Sender</th>
+            <th>Subject</th>
+            <th style="width: 120px;">Category</th>
+            <th style="width: 100px;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="email-table-body">
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
+              No headers synced yet or search returned no results.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button class="btn btn-secondary" id="btn-prev" onclick="prevPage()" disabled>Previous</button>
+      <span id="page-indicator">Page 1 of 1 (0 total headers)</span>
+      <button class="btn btn-secondary" id="btn-next" onclick="nextPage()" disabled>Next</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentPage = 1;
+const limit = 50;
+let searchQuery = "";
+let syncInterval = null;
+let previousStatus = null;
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+}
+
+async function fetchStats() {
+  try {
+    const r = await fetch('/api/mail/stats');
+    const d = await r.json();
+    
+    // Update texts
+    document.getElementById('sync-status-txt').textContent = d.status;
+    document.getElementById('synced-count').textContent = `${d.synced_emails.toLocaleString()} / ${d.total_emails.toLocaleString()}`;
+    document.getElementById('sync-speed').textContent = `${d.current_speed_ups} u/s`;
+    document.getElementById('db-size').textContent = `${d.db_size_mb} MB`;
+    
+    // Status colors & Button disabling
+    const stEl = document.getElementById('sync-status-txt');
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+    const btnCleanup = document.getElementById('btn-cleanup');
+    
+    // Store purging senders globally
+    window.purgingSenders = d.purging_senders || {};
+    
+    // Check for transition from running to idle
+    const wasRunning = (previousStatus === 'Syncing' || previousStatus === 'Cleaning' || previousStatus === 'Purging');
+    const isNowIdle = (d.status === 'Completed' || d.status === 'Stopped' || d.status === 'Error');
+    if (d.status === 'Purging' || (wasRunning && isNowIdle)) {
+      // Refresh sender counts and email list immediately
+      fetchSenders();
+      fetchEmails();
+    }
+    previousStatus = d.status;
+    
+    if (d.status === 'Syncing') {
+      stEl.style.color = 'var(--yellow)';
+      btnStart.disabled = true;
+      btnStop.disabled = false;
+      if (btnCleanup) btnCleanup.disabled = true;
+    } else if (d.status === 'Cleaning' || d.status === 'Purging') {
+      stEl.style.color = 'var(--accent2)';
+      btnStart.disabled = true;
+      btnStop.disabled = true;
+      if (btnCleanup) btnCleanup.disabled = true;
+    } else if (d.status === 'Completed') {
+      stEl.style.color = 'var(--green)';
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      if (btnCleanup) btnCleanup.disabled = false;
+    } else if (d.status === 'Error') {
+      stEl.style.color = 'var(--red)';
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      if (btnCleanup) btnCleanup.disabled = false;
+    } else {
+      stEl.style.color = 'var(--text-muted)';
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      if (btnCleanup) btnCleanup.disabled = false;
+    }
+    
+    // Progress
+    const pct = d.total_emails > 0 ? Math.round((d.synced_emails / d.total_emails) * 100) : 0;
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    
+    // Logs
+    const consoleEl = document.getElementById('log-console');
+    if (d.logs && d.logs.length > 0) {
+      consoleEl.textContent = d.logs.join('\n');
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+  } catch (e) {
+    console.error('Stats fetch error:', e);
+  }
+}
+
+async function startSync() {
+  const folder = document.getElementById('sync-folder').value;
+  const segment = document.getElementById('sync-segment').value;
+  try {
+    const r = await fetch('/api/mail/sync/start', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ folder: folder, segment: segment })
+    });
+    const d = await r.json();
+    await fetchStats();
+  } catch (e) {
+    console.error('Start sync failed:', e);
+  }
+}
+
+async function loadFolders() {
+  try {
+    const r = await fetch('/api/mail/folders');
+    const d = await r.json();
+    const select = document.getElementById('sync-folder');
+    if (d.folders && d.folders.length > 0) {
+      select.innerHTML = '';
+      d.folders.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = f;
+        if (f.toUpperCase() === 'INBOX') {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
+    }
+  } catch (e) {
+    console.error('Failed to load folders:', e);
+    const select = document.getElementById('sync-folder');
+    select.innerHTML = '<option value="INBOX">INBOX</option>';
+  }
+}
+
+async function stopSync() {
+  try {
+    const r = await fetch('/api/mail/sync/stop', { method: 'POST' });
+    const d = await r.json();
+    await fetchStats();
+  } catch (e) {
+    console.error('Stop sync failed:', e);
+  }
+}
+
+async function startCleanup() {
+  const isFast = document.getElementById('cleanup-fast-mode').checked;
+  try {
+    const btnCleanup = document.getElementById('btn-cleanup');
+    if (btnCleanup) btnCleanup.disabled = true;
+    const r = await fetch(`/api/mail/cleanup?fast=${isFast}`, { method: 'POST' });
+    const d = await r.json();
+    await fetchStats();
+    await fetchSenders();
+  } catch (e) {
+    console.error('Start cleanup failed:', e);
+  }
+}
+
+function emptyTrash() {
+  console.log("Empty trash is deprecated. Direct purging flags messages as Deleted directly.");
+}
+
+async function stageSender(sender) {
+  if (!confirm(`Are you sure you want to purge all emails from "${sender}"?`)) {
+    return;
+  }
+  try {
+    const r = await fetch('/api/mail/stage-sender', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sender: sender })
+    });
+    const d = await r.json();
+    await fetchStats();
+    await fetchSenders();
+    await fetchEmails();
+  } catch (e) {
+    console.error('Purge sender failed:', e);
+  }
+}
+
+function toggleAllSenders(master) {
+  const checkboxes = document.querySelectorAll('.sender-checkbox:not(:disabled)');
+  checkboxes.forEach(cb => cb.checked = master.checked);
+}
+
+async function triggerDeepPurge() {
+  const input = document.getElementById('deep-purge-input');
+  const sender = input.value.trim();
+  if (!sender) {
+    alert("Please enter a sender email address.");
+    return;
+  }
+  if (!confirm(`Are you sure you want to run a Deep Server Purge for "${sender}"? This will bypass SQLite and purge all historical emails for this sender from Day 0 directly on Yahoo server.`)) {
+    return;
+  }
+  
+  try {
+    const r = await fetch('/api/mail/deep-purge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sender: sender })
+    });
+    const d = await r.json();
+    input.value = '';
+    await fetchStats();
+    alert(`Deep server purge queued for ${sender}. You can monitor progress in the console logs.`);
+  } catch (e) {
+    console.error('Deep purge failed:', e);
+  }
+}
+
+async function searchKeywordSegments() {
+  const input = document.getElementById('keyword-search-input');
+  const keyword = input.value.trim();
+  if (!keyword) {
+    alert("Please enter a keyword to search.");
+    return;
+  }
+  
+  const container = document.getElementById('keyword-breakdown-container');
+  const listEl = document.getElementById('keyword-segments-list');
+  const btnSearch = document.getElementById('btn-keyword-search');
+  
+  btnSearch.disabled = true;
+  btnSearch.textContent = "Searching...";
+  container.style.display = 'block';
+  listEl.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">Searching Yahoo IMAP server... this may take a moment.</div>`;
+  
+  try {
+    const r = await fetch(`/api/mail/keyword-search?keyword=${encodeURIComponent(keyword)}`);
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || "Search failed");
+    }
+    const d = await r.json();
+    
+    listEl.innerHTML = '';
+    const segments = d.counts || {};
+    let totalCount = 0;
+    
+    Object.keys(segments).forEach(seg => {
+      const count = segments[seg];
+      totalCount += count;
+      
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.justifyContent = 'space-between';
+      row.style.padding = '8px 12px';
+      row.style.background = 'rgba(0,0,0,0.2)';
+      row.style.border = '1px solid var(--border)';
+      row.style.borderRadius = '8px';
+      
+      const infoSpan = document.createElement('span');
+      infoSpan.innerHTML = `<strong style="color:var(--accent);">${seg}</strong>: <span style="font-weight:700;">${count.toLocaleString()}</span> emails found`;
+      
+      const actionBtn = document.createElement('button');
+      actionBtn.className = 'btn btn-primary';
+      actionBtn.style.padding = '4px 12px';
+      actionBtn.style.fontSize = '11px';
+      actionBtn.style.background = 'linear-gradient(135deg, var(--accent2), #ff3366)';
+      actionBtn.style.color = '#fff';
+      actionBtn.textContent = 'Purge Segment';
+      actionBtn.disabled = count === 0;
+      actionBtn.onclick = () => purgeKeywordSegment(keyword, seg);
+      
+      row.appendChild(infoSpan);
+      row.appendChild(actionBtn);
+      listEl.appendChild(row);
+    });
+    
+    if (totalCount === 0) {
+      listEl.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">No matching emails found for "${escapeHtml(keyword)}".</div>`;
+    }
+  } catch (e) {
+    console.error('Keyword search failed:', e);
+    listEl.innerHTML = `<div style="color:var(--red); font-size:12px;">Error: ${e.message}</div>`;
+  } finally {
+    btnSearch.disabled = false;
+    btnSearch.textContent = "Search Keyword";
+  }
+}
+
+async function purgeKeywordSegment(keyword, segment) {
+  if (!confirm(`Are you sure you want to purge all historical emails matching "${keyword}" in the segment ${segment}?`)) {
+    return;
+  }
+  
+  try {
+    const r = await fetch('/api/mail/keyword-purge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ keyword: keyword, segment: segment })
+    });
+    const d = await r.json();
+    await fetchStats();
+    alert(`Purge queued for "${keyword}" in segment ${segment}. You can monitor progress in the console logs.`);
+  } catch (e) {
+    console.error('Keyword purge failed:', e);
+    alert('Failed to start keyword purge.');
+  }
+}
+
+
+
+async function purgeSelectedSenders() {
+  const selectedCbs = document.querySelectorAll('.sender-checkbox:checked');
+  if (selectedCbs.length === 0) {
+    alert("Please select at least one sender to purge.");
+    return;
+  }
+  
+  const senders = Array.from(selectedCbs).map(cb => cb.getAttribute('data-sender'));
+  if (!confirm(`Are you sure you want to purge all emails from the ${senders.length} selected senders?`)) {
+    return;
+  }
+  
+  // Clear checkboxes immediately to prevent double submissions
+  selectedCbs.forEach(cb => {
+    cb.checked = false;
+    cb.disabled = true;
+  });
+  document.getElementById('select-all-senders').checked = false;
+  
+  try {
+    const r = await fetch('/api/mail/stage-senders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ senders: senders })
+    });
+    const d = await r.json();
+    await fetchStats();
+    await fetchSenders();
+  } catch (e) {
+    console.error('Purge senders failed:', e);
+  }
+}
+
+async function fetchSenders() {
+  try {
+    const r = await fetch('/api/mail/senders');
+    const d = await r.json();
+    
+    const tbody = document.getElementById('sender-table-body');
+    if (!d.senders || d.senders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No active sender data available.</td></tr>`;
+      return;
+    }
+    
+    let html = '';
+    const purgeStatuses = window.purgingSenders || {};
+    let renderedCount = 0;
+    
+    d.senders.forEach(s => {
+      const purgeStatus = purgeStatuses[`sender:${s.sender}`];
+      let emailCount = s.email_count;
+      if (purgeStatus === 'Done') {
+        emailCount = 0;
+      }
+      
+      if (emailCount <= 0) {
+        return;
+      }
+      
+      renderedCount++;
+      const safeSenderAttr = escapeHtml(s.sender);
+      const safeSenderText = escapeHtml(s.sender);
+      
+      let actionHtml = '';
+      let isDisabled = '';
+      let emailCountText = emailCount.toLocaleString();
+      
+      if (purgeStatus) {
+        isDisabled = 'disabled';
+        if (purgeStatus === 'Purging...') {
+          actionHtml = `<span class="badge badge-status" style="background:rgba(255,183,0,0.15); color:var(--yellow); border:1px solid rgba(255,183,0,0.3);">Purging...</span>`;
+        } else if (purgeStatus === 'Queued') {
+          actionHtml = `<span class="badge badge-status" style="background:rgba(139,0,255,0.15); color:#c48fff; border:1px solid rgba(139,0,255,0.3);">Queued</span>`;
+        } else if (purgeStatus === 'Error') {
+          actionHtml = `<span class="badge badge-status" style="background:rgba(255,51,102,0.15); color:var(--red); border:1px solid rgba(255,51,102,0.3);">Error</span>`;
+        }
+      } else {
+        actionHtml = `<button class="btn btn-secondary btn-stage-sender" data-sender="${safeSenderAttr}" style="padding: 4px 10px; font-size: 11px; border-color: var(--accent2); color: var(--text);">Purge</button>`;
+      }
+      
+      html += `<tr>
+        <td style="text-align: center;"><input type="checkbox" class="sender-checkbox" data-sender="${safeSenderAttr}" ${isDisabled}></td>
+        <td style="color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:500px;" title="${safeSenderAttr}">${safeSenderText}</td>
+        <td style="text-align: right; font-weight: 700; padding-right: 20px;">${emailCountText}</td>
+        <td style="text-align: center;">${actionHtml}</td>
+      </tr>`;
+    });
+    
+    if (renderedCount === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No active sender data available.</td></tr>`;
+    } else {
+      tbody.innerHTML = html;
+    }
+  } catch (e) {
+    console.error('Fetch senders error:', e);
+  }
+}
+
+async function fetchEmails() {
+  try {
+    let url = `/api/mail/emails?page=${currentPage}&limit=${limit}`;
+    if (searchQuery.trim()) {
+      url += `&search=${encodeURIComponent(searchQuery)}`;
+    }
+    
+    const r = await fetch(url);
+    const d = await r.json();
+    
+    const tbody = document.getElementById('email-table-body');
+    if (!d.emails || d.emails.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No headers found.</td></tr>`;
+      document.getElementById('page-indicator').textContent = `Page 1 of 1 (0 total headers)`;
+      document.getElementById('btn-prev').disabled = true;
+      document.getElementById('btn-next').disabled = true;
+      return;
+    }
+    
+    let html = '';
+    d.emails.forEach(em => {
+      html += `<tr>
+        <td><strong>${em.imap_uid}</strong></td>
+        <td style="color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px;" title="${em.sender}">${em.sender}</td>
+        <td style="max-width:500px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${em.subject}">${em.subject}</td>
+        <td><span class="badge badge-category">${em.category}</span></td>
+        <td><span class="badge badge-status">${em.status}</span></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+    
+    const totalPages = Math.ceil(d.total_count / limit) || 1;
+    document.getElementById('page-indicator').textContent = `Page ${currentPage} of ${totalPages} (${d.total_count.toLocaleString()} total headers)`;
+    
+    document.getElementById('btn-prev').disabled = currentPage <= 1;
+    document.getElementById('btn-next').disabled = currentPage >= totalPages;
+  } catch (e) {
+    console.error('Fetch emails error:', e);
+  }
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    fetchEmails();
+  }
+}
+
+function nextPage() {
+  currentPage++;
+  fetchEmails();
+}
+
+function searchEmails() {
+  searchQuery = document.getElementById('search-input').value;
+  currentPage = 1;
+  fetchEmails();
+}
+
+// Bind event delegation for staging buttons
+document.getElementById('sender-table-body').addEventListener('click', function(e) {
+  if (e.target && e.target.classList.contains('btn-stage-sender')) {
+    const sender = e.target.getAttribute('data-sender');
+    stageSender(sender);
+  }
+});
+
+// Initial loads
+loadFolders();
+fetchStats();
+fetchSenders();
+fetchEmails();
+
+// Set intervals
+setInterval(fetchStats, 2000); // Fast stats sync for responsive UI
+setInterval(fetchSenders, 10000); // Refresh top senders list
+setInterval(fetchEmails, 10000); // Slow emails refresh
+</script>
+</body>
+</html>

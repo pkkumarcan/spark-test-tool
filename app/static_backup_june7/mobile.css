@@ -1,0 +1,259 @@
+/* ═══════════════════════════════════════════════════════════
+   mobile.css — Spark Test Tool mobile responsive styles
+   Injected via <link> in index.html and mail.html
+   Breakpoints: 768px (tablet/phone), 390px (iPhone SE), landscape
+═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Header ── */
+  .header {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header h1 {
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+
+  /* GPU chips: too wide for mobile, hide them */
+  .gpu-bar { display: none !important; }
+
+  /* ── Services status bar ── */
+  .services-bar {
+    padding: 7px 14px;
+    gap: 8px;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     TAB BAR — Moves to the BOTTOM of the screen on mobile.
+     This is the biggest mobile UX improvement. Tabs become a
+     thumb-friendly bottom nav bar, like a native iOS app.
+     Swipe left/right to scroll through all the tools.
+  ══════════════════════════════════════════════════════ */
+  .tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: rgba(11, 11, 19, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(42, 42, 74, 0.6);
+    border-bottom: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+    scrollbar-width: none;
+    /* Respect iPhone home indicator (the bar at the bottom) */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 12px 14px;
+    font-size: 11px;
+    min-width: max-content;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    border-bottom: none;
+    border-top: 2px solid transparent;
+  }
+
+  .tab.active {
+    border-bottom: none;
+    border-top: 2px solid var(--accent);
+  }
+
+  /* ── Main layout: stack vertically ── */
+  .main-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  /* Content area: full width, bottom padding clears the fixed tab bar */
+  .content-area {
+    padding: 14px;
+    padding-bottom: 80px; /* must be >= tab bar height */
+  }
+
+  /* Panels fill full width */
+  .panel { max-width: 100% !important; }
+
+  /* ── Cards ── */
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  /* Two-column rows → single column */
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Card grids → always single column */
+  .card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  /* ── Inputs ──
+     IMPORTANT: font-size MUST be >= 16px to prevent iOS Safari
+     from auto-zooming into the field when the user taps it.
+     This is the #1 most common mobile web annoyance. */
+  select,
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="url"],
+  textarea {
+    font-size: 16px !important;
+    padding: 13px 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  textarea {
+    min-height: 80px;
+  }
+
+  /* ── Buttons: full width, 50px tall for thumb tapping ── */
+  .btn {
+    width: 100%;
+    padding: 15px 18px;
+    font-size: 15px;
+    border-radius: 12px;
+    min-height: 50px;
+    margin-top: 2px;
+    touch-action: manipulation; /* remove 300ms tap delay */
+  }
+
+  /* ── Output box ── */
+  .output {
+    font-size: 12px;
+    max-height: 260px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 12px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Output media: always full width */
+  .output img,
+  .output video,
+  .output audio {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ── Sidebar: hide on mobile (not practical on small screen) ── */
+  .asset-sidebar { display: none !important; }
+
+  /* ── Labels ── */
+  label {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  /* ── Toggle switches ── */
+  .toggle-switch { margin-bottom: 12px; }
+
+  /* ── Drop zones: tap-friendly ── */
+  .drop-zone {
+    padding: 20px 14px;
+    min-height: 72px;
+    font-size: 13px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Tables: scroll horizontally on small screens ── */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table { min-width: 460px; }
+
+  /* ── Advanced settings panels ── */
+  #advanced-ingest-settings { padding: 10px; }
+
+  /* ── Status badges ── */
+  .status { font-size: 10px; }
+
+  /* ── GPU chip inline stats (when shown in smaller form) ── */
+  .gpu-chip { min-width: 140px; }
+}
+
+/* ════════════════════════════════════════
+   Very small phones — iPhone SE (375px)
+   and other sub-390px screens
+════════════════════════════════════════ */
+@media (max-width: 390px) {
+
+  .header h1 { font-size: 13px; }
+  .header { padding: 8px 12px; }
+
+  .tab { padding: 11px 11px; font-size: 10px; }
+
+  .content-area {
+    padding: 10px;
+    padding-bottom: 74px;
+  }
+
+  .card { padding: 13px; border-radius: 10px; }
+  .card-title { font-size: 13px; }
+
+  .btn { font-size: 14px; min-height: 48px; }
+
+  .output { font-size: 11px; max-height: 220px; }
+}
+
+/* ════════════════════════════════════════
+   Landscape phone (rotated sideways)
+   Return tabs to top so we get more
+   vertical screen real estate
+════════════════════════════════════════ */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+
+  .tabs {
+    position: relative;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 1px solid rgba(42, 42, 74, 0.4);
+    padding-bottom: 0;
+  }
+
+  .tab {
+    border-top: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .tab.active {
+    border-top: none;
+    border-bottom-color: var(--accent);
+  }
+
+  .content-area { padding-bottom: 20px; }
+
+  .gpu-bar { display: none !important; }
+
+  .output { max-height: 180px; }
+}

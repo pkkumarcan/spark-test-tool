@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  vllm:
+    container_name: vllm-inference
+    image: vllm/vllm-openai:latest
+    ports:
+      - "${VLLM_PORT:-8000}:8000"
+    volumes:
+      - ${HF_CACHE_DIR:-~/.cache/huggingface}:/root/.cache/huggingface
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+      - CUDA_VISIBLE_DEVICES=${VLLM_GPU_ID:-1}
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      --model ${VLLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
+      --port 8000
+      --gpu-memory-utilization ${VLLM_GPU_MEM_UTIL:-0.90}
+      --max-model-len ${VLLM_MAX_MODEL_LEN:-4096}
+      --trust-remote-code
+    restart: unless-stopped

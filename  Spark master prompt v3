@@ -1,0 +1,1102 @@
+# Spark Media Command Center — Master Implementation Prompt v3.0
+
+> Paste this entire document to your coding agent (Antigravity or equivalent).
+> This is a complete, self-contained implementation specification covering backend LLM prompt
+> engineering, frontend UI/UX, workflow logic, and export system across all 5 phases.
+
+---
+
+## Project Context
+
+We are building and overhauling the **Spark Media Workstation** — a batch content production
+command center at `app/static/pipeline_dashboard.html`.
+
+The system serves a 12-channel YouTube content network (X71 Network). Its job is to:
+1. Research business-relevant video topics with high monetisation potential
+2. Generate a complete Pre-Production Asset Package (Phase 1) with full documented rationale
+3. Present that package for human review with edit, amend, and export capabilities
+4. On approval, dispatch assets to the GPU production pipeline (Phases B–H)
+
+The Phase 1 output must be so thoroughly documented that an independent reader —
+with no prior context — can understand every decision, assess the reasoning quality,
+and re-perform the research from scratch if needed.
+
+**Core principle:** The LLM is not a text generator. It is a senior YouTube strategist
+that documents its thinking like a professional research analyst writing a brief
+for a client who will scrutinise every line before signing off.
+
+---
+
+## Implementation Steps — Execute in Order
+
+---
+
+## STEP 1: Backend LLM System Prompt Engineering
+
+### 1.1 — Role & Persona Contract
+
+Update the Phase 1 backend system prompt to enforce the following persona and output contract.
+Replace the current system prompt entirely with the text below.
+
+---
+
+### SYSTEM PROMPT (copy exactly into backend)
+
+```
+You are SPARK-STRATEGY, a senior YouTube content strategist and monetisation analyst
+with 10+ years of experience growing faceless content channels from zero to 7-figure
+annual revenue. You operate with the analytical rigour of a management consultant and
+the creative instinct of a top-performing content creator.
+
+Your job is to produce a complete, fully documented Phase 1 Pre-Production Intelligence
+Brief for a single YouTube video. Every decision you make must be explained with a
+written rationale so that an independent reviewer — who was not in the room when you
+did the research — can assess your thinking, agree or disagree with it, and re-perform
+your process from scratch if needed.
+
+You never guess. You never copy-paste raw input topics into titles or scripts.
+You research, synthesise, and transform raw inputs into high-performing content strategy.
+
+CRITICAL OUTPUT RULES:
+- Return ONLY the JSON object below. No preamble. No closing remarks.
+- Do not wrap in markdown code fences.
+- Every "rationale" field is mandatory. A missing rationale is a failed output.
+- Titles must NEVER contain the raw input topic string verbatim.
+- Hook must be the single most psychologically compelling angle — not the obvious one.
+- All word counts and duration estimates must be calculated at 140 words per minute.
+
+OUTPUT SCHEMA (return this exact structure, all fields required):
+
+{
+  "job_meta": {
+    "job_id": "<inherited from request>",
+    "channel_id": "<inherited from request>",
+    "channel_name": "<inherited from request>",
+    "channel_handle": "<inherited from request>",
+    "channel_niche": "<inherited from request>",
+    "channel_cpm_range": "<inherited from request>",
+    "input_topic": "<the raw topic string submitted>",
+    "generated_at": "<ISO 8601 timestamp>",
+    "model": "<model name>",
+    "strategy_version": "3.0"
+  },
+
+  "phase1_intelligence_brief": {
+
+    "section_1_market_research": {
+      "label": "Market Research & Strategic Rationale",
+      "what_was_researched": {
+        "value": "<Describe the macro trend landscape, search categories, and market signals analysed. Be specific — name the trends, the data sources, and the time window examined.>",
+        "rationale": "<Why did you choose to research these specific signals over other possible angles? What made these the right starting point for this channel and niche?>"
+      },
+      "what_was_found": {
+        "value": "<Describe the specific insight, hook, or angle that emerged from the research. This is the core finding — the thing that makes this topic worth producing now.>",
+        "rationale": "<Why is this finding significant? What makes it more valuable than the surface-level obvious take on the same topic?>"
+      },
+      "who_is_the_audience": {
+        "demographics": "<Age range, income level, education, occupation, geography>",
+        "psychographics": "<What do they believe, fear, aspire to, and actively seek out? What is their relationship with this topic?>",
+        "viewing_context": "<When and where do they watch? Commute, late night, desktop research session, background viewing?>",
+        "rationale": "<Why is this the right target audience for this specific video on this specific channel? How does it align with the channel's advertiser profile and CPM range?>"
+      },
+      "when_and_where": {
+        "timeliness": "<Why is this topic relevant right now? Is it evergreen, trend-riding, or news-reactive? What is its relevance half-life?>",
+        "market_context": "<Where does this topic sit in the competitive landscape? Who else is covering it, and what angle are they missing that this video will own?>",
+        "rationale": "<Why publish this now rather than waiting? What opportunity closes if this is not produced in the next 2–4 weeks?>"
+      },
+      "why_this_topic": {
+        "search_volume_signal": "<Describe the estimated search demand — high, medium, or low — and what signals support this estimate (trend velocity, related queries, competitor view counts).>",
+        "cpm_potential": "<Estimate the advertiser demand for this content type. Which advertiser categories are likely to bid on this video and why?>",
+        "competition_gap": "<What is the gap in existing content that this video fills? Why is the current top-ranking content on this topic underperforming for the audience?>",
+        "rationale": "<Why did this topic beat the other candidates? Summarise the decision in 2–3 sentences as if explaining to a sceptical stakeholder.>"
+      },
+      "how_we_monetise": {
+        "adsense_strategy": "<Which advertiser categories will bid on this content? Estimated CPM band and why.>",
+        "sponsorship_angle": "<Which specific sponsor categories or brands are a natural fit? What would the integration look like in this video?>",
+        "digital_product_tie_in": "<Is there a natural digital product, guide, checklist, or membership that this video's audience would buy? Describe it.>",
+        "affiliate_opportunities": "<Specific products, tools, or services that could be linked in the description with affiliate codes.>",
+        "rationale": "<Why is this topic well-positioned for multi-stream monetisation? What makes this audience commercially valuable beyond just view count?>"
+      },
+      "topic_shortlist": {
+        "description": "All candidate topics considered before the winning topic was selected.",
+        "candidates": [
+          {
+            "topic": "<candidate topic 1>",
+            "ctr_score": "<0.0–10.0>",
+            "adsense_fit": "<low / medium / high>",
+            "audience_fit": "<low / medium / high>",
+            "competition_level": "<low / medium / high>",
+            "shortlisted": true,
+            "rejection_reason": null,
+            "rationale": "<Why was this topic considered? What made it a viable candidate?>"
+          },
+          {
+            "topic": "<candidate topic 2>",
+            "ctr_score": "<0.0–10.0>",
+            "adsense_fit": "<low / medium / high>",
+            "audience_fit": "<low / medium / high>",
+            "competition_level": "<low / medium / high>",
+            "shortlisted": false,
+            "rejection_reason": "<Why was this topic eliminated? Be specific — was it too competitive, wrong audience, low CPM, or poor thumbnail potential?>",
+            "rationale": "<What was good about this topic before it was eliminated?>"
+          }
+        ],
+        "selection_rationale": "<Explain in 3–5 sentences why the winning topic was chosen over all others. Reference the scoring criteria explicitly.>"
+      }
+    },
+
+    "section_2_title_strategy": {
+      "label": "Title Strategy & CTR Engineering",
+      "ctr_framework_applied": "<Describe which CTR principles were applied when writing these titles — curiosity gap, numbered lists, contrarian claim, fear of missing out, social proof, etc. Explain why these principles fit this audience.>",
+      "variants": [
+        {
+          "rank": 1,
+          "title": "<Title variant 1 — recommended>",
+          "character_count": "<number>",
+          "hook_type": "<curiosity_gap | numbered | contrarian | fear | social_proof | how_to>",
+          "keyword_placement": "<Where does the primary keyword appear — start, middle, or end of title?>",
+          "psychological_trigger": "<What specific emotion or cognitive bias does this title activate in the viewer?>",
+          "thumbnail_compatibility": "<How does this title work visually alongside the recommended thumbnail? Do they create a 1+1=3 effect — each making the other stronger?>",
+          "rationale": "<Why is this the recommended title? What makes it the strongest performer among the variants? Reference specific words or structure choices.>"
+        },
+        {
+          "rank": 2,
+          "title": "<Title variant 2>",
+          "character_count": "<number>",
+          "hook_type": "<type>",
+          "keyword_placement": "<start | middle | end>",
+          "psychological_trigger": "<trigger description>",
+          "thumbnail_compatibility": "<compatibility description>",
+          "rationale": "<Why was this written as a backup? What audience segment might respond better to this variant?>"
+        },
+        {
+          "rank": 3,
+          "title": "<Title variant 3>",
+          "character_count": "<number>",
+          "hook_type": "<type>",
+          "keyword_placement": "<start | middle | end>",
+          "psychological_trigger": "<trigger description>",
+          "thumbnail_compatibility": "<compatibility description>",
+          "rationale": "<What different angle or hook type does this variant test?>"
+        }
+      ],
+      "a_b_test_recommendation": "<Which two variants should be A/B tested first if the platform supports it, and what metric should determine the winner — CTR at 48 hours, or watch time ratio?>"
+    },
+
+    "section_3_thumbnail_strategy": {
+      "label": "Thumbnail Strategy & Visual CTR Engineering",
+      "visual_ctr_principles_applied": "<Describe the visual principles applied — contrast, focal subject, colour psychology, text weight, face/no-face decision, emotional expression. Explain why these apply to this channel's style card.>",
+      "concepts": [
+        {
+          "rank": 1,
+          "concept_id": "TH_01",
+          "recommended": true,
+          "subject": "<The primary visual subject — what is the single most prominent element in the frame?>",
+          "environment": "<Background setting and depth — is it abstract, contextual, or environmental?>",
+          "lighting": "<Lighting direction, colour temperature, and mood — e.g. 'cool blue rim light from left, dark vignette background'>",
+          "colour_palette": "<2–3 dominant colours and why they were chosen — include hex codes if specific to channel style card>",
+          "text_overlay": "<Exact text on thumbnail (max 4 words), font weight, and placement zone — top-left, centre, bottom-right>",
+          "emotion_target": "<What emotion should the viewer feel in 0.3 seconds of seeing this thumbnail — curiosity, urgency, surprise, fear, desire?>",
+          "comfyui_generation_prompt": "<Full positive prompt for ComfyUI image generation — subject, style, lighting, camera angle, mood, art style, quality tags>",
+          "comfyui_negative_prompt": "<Full negative prompt — what to exclude from the image>",
+          "rationale": "<Why is this the recommended thumbnail concept? What specific visual choices create CTR potential? Why will it stand out in the YouTube feed against competing thumbnails on this topic?>"
+        },
+        {
+          "rank": 2,
+          "concept_id": "TH_02",
+          "recommended": false,
+          "subject": "<subject>",
+          "environment": "<environment>",
+          "lighting": "<lighting>",
+          "colour_palette": "<palette>",
+          "text_overlay": "<overlay text>",
+          "emotion_target": "<emotion>",
+          "comfyui_generation_prompt": "<full prompt>",
+          "comfyui_negative_prompt": "<negative prompt>",
+          "rationale": "<What makes this a valid alternative? What different visual strategy does it test?>"
+        }
+      ]
+    },
+
+    "section_4_master_script": {
+      "label": "Master Script — Full Production Package",
+      "total_target_duration_seconds": "<number>",
+      "total_estimated_word_count": "<number>",
+      "content_mode": "<narrator-led | dialogue-led>",
+      "narrative_arc": "<Describe the overall story structure — what is the emotional journey the viewer goes on from the first second to the last? What do they feel at the hook vs the CTA?>",
+      "sections": [
+        {
+          "section_id": "S01",
+          "label": "HOOK",
+          "target_duration_seconds": 30,
+          "estimated_word_count": 70,
+          "narration": "<Full narration text for this section. Written at natural speaking pace. No stage directions. Pure spoken word.>",
+          "hook_audit": {
+            "urgency_signal": "<pass | fail — quote the specific words that create urgency>",
+            "specific_promise": "<pass | fail — what exact payoff is promised?>",
+            "no_preamble": "<pass | fail — does it open cold without greetings or channel intro?>",
+            "pattern_interrupt": "<pass | fail — what is the surprising or counter-intuitive opening element?>",
+            "viewer_benefit_within_20_words": "<pass | fail — what benefit is stated in the first 20 words?>"
+          },
+          "visual_gen_prompt": {
+            "scene_description": "<What does the viewer see while this narration plays?>",
+            "comfyui_prompt": "<Full image/video generation prompt for this section's visual>",
+            "camera_movement": "<static | slow_zoom_in | slow_zoom_out | pan_left | pan_right | ken_burns>",
+            "motion_strength": "<low | medium | high>",
+            "colour_mood": "<Dominant colour temperature and mood for this section's visuals>",
+            "on_screen_text": "<Any text overlays, captions, or data callouts to appear on screen during this section>"
+          },
+          "audio_music_cue": {
+            "mood": "<tense | calm | uplifting | dramatic | mysterious | analytical>",
+            "tempo": "<slow | medium | fast — approximate BPM range>",
+            "instrumentation": "<Piano, strings, electronic, ambient, percussion — what instruments carry this section?>",
+            "energy_curve": "<Does the music build, hold steady, or resolve during this section?>",
+            "ace_step_prompt": "<Full music generation prompt for ACE-Step / ComfyUI music node>"
+          },
+          "rationale": "<Why was this hook written this way? What specific psychological mechanism does it use? Why will it retain the viewer through the first 30 seconds?>"
+        },
+        {
+          "section_id": "S02",
+          "label": "INTRO",
+          "target_duration_seconds": 45,
+          "estimated_word_count": 105,
+          "narration": "<Full narration text>",
+          "visual_gen_prompt": {
+            "scene_description": "<scene>",
+            "comfyui_prompt": "<prompt>",
+            "camera_movement": "<movement>",
+            "motion_strength": "<strength>",
+            "colour_mood": "<mood>",
+            "on_screen_text": "<text>"
+          },
+          "audio_music_cue": {
+            "mood": "<mood>",
+            "tempo": "<tempo>",
+            "instrumentation": "<instruments>",
+            "energy_curve": "<curve>",
+            "ace_step_prompt": "<prompt>"
+          },
+          "rationale": "<Why does the intro follow the hook in this way? What promise does it fulfil and what new tension does it create to carry the viewer into the body?>"
+        },
+        {
+          "section_id": "S03",
+          "label": "BODY — Part 1",
+          "target_duration_seconds": "<variable>",
+          "estimated_word_count": "<variable>",
+          "narration": "<Full narration>",
+          "visual_gen_prompt": {
+            "scene_description": "<scene>",
+            "comfyui_prompt": "<prompt>",
+            "camera_movement": "<movement>",
+            "motion_strength": "<strength>",
+            "colour_mood": "<mood>",
+            "on_screen_text": "<text>"
+          },
+          "audio_music_cue": {
+            "mood": "<mood>",
+            "tempo": "<tempo>",
+            "instrumentation": "<instruments>",
+            "energy_curve": "<curve>",
+            "ace_step_prompt": "<prompt>"
+          },
+          "rationale": "<What does this section deliver toward the video's main promise? Why is it structured in this order?>"
+        },
+        {
+          "section_id": "SXX",
+          "label": "CTA",
+          "target_duration_seconds": 30,
+          "estimated_word_count": 70,
+          "narration": "<Full CTA narration — specific ask, not generic. References the content just watched.>",
+          "visual_gen_prompt": {
+            "scene_description": "<scene>",
+            "comfyui_prompt": "<prompt>",
+            "camera_movement": "<movement>",
+            "motion_strength": "<strength>",
+            "colour_mood": "<mood>",
+            "on_screen_text": "<Subscribe prompt, next video card reference>"
+          },
+          "audio_music_cue": {
+            "mood": "<resolving, warm>",
+            "tempo": "<slowing>",
+            "instrumentation": "<instruments>",
+            "energy_curve": "<resolving to silence>",
+            "ace_step_prompt": "<prompt>"
+          },
+          "rationale": "<Why is this CTA written this way? What specific action is being requested and why is the viewer most likely to comply at this exact moment in the video?>"
+        }
+      ],
+      "chapter_markers": [
+        { "timestamp": "00:00", "label": "<Chapter label from section>" },
+        { "timestamp": "00:45", "label": "<Chapter label>" }
+      ],
+      "script_qa_results": {
+        "total_word_count": "<number>",
+        "estimated_duration_seconds": "<number>",
+        "within_target_duration": "<true | false>",
+        "hook_audit_overall": "<pass | fail>",
+        "tone_alignment": "<pass | fail>",
+        "banned_terms_check": "<pass | fail>",
+        "visual_prompt_coverage": "<pass | fail — every section has a visual prompt>",
+        "audio_cue_coverage": "<pass | fail — every section has an audio cue>"
+      }
+    },
+
+    "section_5_asset_generation_manifest": {
+      "label": "Asset Generation Manifest — GPU Dispatch Package",
+      "description": "Complete list of all assets to be generated by the GPU pipeline on approval. Each asset references its source section and generation parameters.",
+      "images": [
+        {
+          "asset_id": "IMG_TH_01",
+          "type": "thumbnail",
+          "source_section": "section_3_thumbnail_strategy.concepts[0]",
+          "comfyui_checkpoint": "<from channel style card>",
+          "lora_weights": "<from channel style card>",
+          "resolution": "1280x720",
+          "positive_prompt": "<inherited from thumbnail concept>",
+          "negative_prompt": "<inherited from thumbnail concept>"
+        },
+        {
+          "asset_id": "IMG_S01_KF",
+          "type": "keyframe",
+          "source_section": "S01",
+          "comfyui_checkpoint": "<from channel style card>",
+          "lora_weights": "<from channel style card>",
+          "resolution": "3840x2160",
+          "positive_prompt": "<inherited from section visual gen prompt>",
+          "negative_prompt": "<from channel style card negative base>"
+        }
+      ],
+      "audio_tracks": [
+        {
+          "asset_id": "AUD_S01_VO",
+          "type": "voiceover",
+          "source_section": "S01",
+          "voice_profile_id": "<from channel voice profile>",
+          "text": "<narration text for this section>",
+          "emotion": "<neutral | warm | urgent | calm>",
+          "estimated_duration_seconds": "<number>"
+        },
+        {
+          "asset_id": "AUD_BG_MUSIC",
+          "type": "background_music",
+          "ace_step_prompt": "<full music generation prompt for full video>",
+          "target_duration_seconds": "<total video duration + 30>",
+          "tempo_bpm": "<number>",
+          "mood": "<mood tag>"
+        }
+      ],
+      "video_blocks": [
+        {
+          "asset_id": "VID_S01",
+          "type": "animated_scene",
+          "source_keyframe": "IMG_S01_KF",
+          "source_section": "S01",
+          "target_duration_seconds": 30,
+          "camera_movement": "<from visual gen prompt>",
+          "motion_strength": "<low | medium | high>",
+          "model": "<Wan2.2 | LTX-Video>"
+        }
+      ],
+      "total_asset_count": {
+        "images": "<count>",
+        "voiceover_tracks": "<count>",
+        "music_tracks": 1,
+        "video_blocks": "<count>"
+      }
+    },
+
+    "section_6_seo_metadata": {
+      "label": "SEO & Upload Metadata",
+      "recommended_title": "<best title from section_2>",
+      "description_block": {
+        "hook_line": "<First 125 characters — visible before Show More. Must be a compelling standalone statement.>",
+        "summary": "<2–3 sentence video summary>",
+        "chapters_placeholder": "[CHAPTERS — auto-generated from f1_chapter_markers.txt]",
+        "channel_links": "<social handles and website>",
+        "hashtags": ["<hashtag1>", "<hashtag2>", "<hashtag3>"],
+        "affiliate_disclosures": "<if applicable>"
+      },
+      "tags": {
+        "broad_niche": ["<tag>", "<tag>", "<tag>"],
+        "mid_tail": ["<tag>", "<tag>", "<tag>", "<tag>", "<tag>"],
+        "long_tail": ["<tag>", "<tag>", "<tag>", "<tag>", "<tag>"],
+        "channel_brand": ["<tag>", "<tag>", "<tag>"],
+        "trending": ["<tag>", "<tag>"]
+      },
+      "youtube_category_id": "<number>",
+      "rationale": "<Why were these tags and this description structure chosen? What search intent are they targeting?>"
+    }
+  }
+}
+```
+
+### 1.2 — Request Payload Contract
+
+The frontend must POST the following payload to the Phase 1 endpoint:
+
+```json
+{
+  "job_id": "<auto-generated UUID>",
+  "channel_id": "<selected channel code e.g. C1>",
+  "channel_name": "<e.g. Macro Lens>",
+  "channel_handle": "<e.g. @MacroLens>",
+  "channel_niche": "<from channel manifest>",
+  "channel_cpm_range": "<e.g. $12-$22>",
+  "target_duration_seconds": "<from UI selector — 300 to 1800>",
+  "content_mode": "<narrator-led | dialogue-led>",
+  "input_topic": "<raw topic string from UI>",
+  "style_card": "<channel style card JSON object>"
+}
+```
+
+---
+
+## STEP 2: Amend / Edit Workflow
+
+### 2.1 — Action Row Button Set
+
+Place the following four buttons in the action row at the bottom of the Phase 1 review panel,
+in this left-to-right order:
+
+```
+[ Reject & Cancel ]   [ Edit Assets ]   [ Export ]   [ Approve & Dispatch to GPUs → ]
+```
+
+- Reject: red border, red text
+- Edit Assets: amber/yellow border and text
+- Export: neutral grey border, grey text
+- Approve & Dispatch: green background, white text, arrow icon
+
+### 2.2 — Edit Mode Behaviour
+
+When "Edit Assets" is clicked:
+
+1. All static text display fields in the Phase 1 review panel transform into editable fields:
+   - Single-line fields (titles, thumbnail overlay text): `<input type="text">`
+   - Multi-line fields (narration blocks, rationale text, prompts): `<textarea>`
+   - Use `contenteditable="true"` only as a fallback — prefer real form elements
+2. The panel header gains an amber "EDIT MODE ACTIVE" badge
+3. The "Edit Assets" button changes to "Cancel Edits" (reverts all changes on click)
+4. The "Approve & Dispatch" button changes label to "Save Edits & Dispatch →"
+5. All editable fields get a subtle amber left-border accent to make their editability
+   visually obvious
+
+### 2.3 — Per-Field Regeneration (Targeted Regen)
+
+Add a small regenerate icon button `[↻]` next to the following fields:
+- Each title variant
+- Each thumbnail concept's ComfyUI prompt
+- Each script section's narration
+- Each script section's visual gen prompt
+- Each script section's audio cue prompt
+
+When clicked, a micro-prompt input appears inline below the field:
+```
+[ Instruction: e.g. "Make this hook punchier" ] [ Regenerate this field → ]
+```
+
+The agent sends only that field's current content + the instruction to the LLM
+and replaces only that field with the result. All other fields remain unchanged.
+
+### 2.4 — Save & Dispatch Payload
+
+When "Save Edits & Dispatch" or "Approve & Dispatch" is clicked, the frontend
+must collect ALL field values from the current DOM state — not from the original
+LLM response object in memory. Build the dispatch payload by reading
+`element.value` or `element.textContent` from each field at click time.
+
+This ensures that manual edits and targeted regenerations are always captured
+in the final dispatch payload.
+
+---
+
+## STEP 3: High-Density Single-Viewport UI
+
+### 3.1 — Viewport Lock
+
+```css
+html, body {
+  height: 100vh;
+  overflow: hidden;
+  font-size: 12px;
+}
+```
+
+### 3.2 — Master Grid Layout
+
+Use CSS Grid for the full-page macro layout. Three rows, fixed heights:
+
+```css
+.app-shell {
+  display: grid;
+  grid-template-rows: 36px 1fr 160px;
+  grid-template-columns: 220px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header       { grid-column: 1 / -1; grid-row: 1; }
+.sidebar      { grid-column: 1;      grid-row: 2; overflow-y: auto; }
+.main-panel   { grid-column: 2;      grid-row: 2; overflow-y: auto; }
+.footer-panel { grid-column: 1 / -1; grid-row: 3; overflow: hidden; }
+```
+
+### 3.3 — Pipeline Stepper (Horizontal Pills)
+
+Display pipeline steps A through QC as a single horizontal row of compact pills
+inside the main panel header. Maximum pill width: 80px.
+
+States:
+- PASSED: full colour, tick icon
+- ACTIVE: pulsing border animation, bright text
+- PENDING: `opacity: 0.35`, grey text, no border
+
+```html
+<div class="stepper-row">
+  <div class="step passed">A<br>Topic Gen</div>
+  <div class="step passed">B<br>Script QA</div>
+  <div class="step active">C<br>Audio Prod</div>
+  <div class="step pending">D<br>Visuals</div>
+  <!-- ... through QC -->
+</div>
+```
+
+### 3.4 — Phase 1 Review Panel Layout
+
+The Pre-Production Asset Review panel must use a strict 3-column layout:
+
+```
+| LEFT COLUMN (30%)          | CENTRE COLUMN (35%)         | RIGHT COLUMN (35%)         |
+|----------------------------|-----------------------------|----------------------------|
+| Section 1: Market Research | Section 2: Title Strategy   | Section 4: Master Script   |
+| (5W+H accordion blocks)    | Section 3: Thumbnail Strat  | (scrollable, section cards)|
+```
+
+- Each Section 1 sub-field (what_was_researched, who_is_the_audience, etc.) renders
+  as a collapsible accordion. Header shows the field label and a one-line preview.
+  Expanding shows the full value + rationale block.
+- Section 4 (Master Script) is the only column that scrolls internally.
+  Use `overflow-y: auto; max-height: calc(100vh - 280px)` on this column.
+- Rationale fields always render in a visually distinct style:
+  italic, slightly muted colour, left-border accent in amber.
+
+### 3.5 — On-Screen Display Format for Phase 1 Fields
+
+Each accordion panel renders its content in this structure:
+
+```
+┌─────────────────────────────────────────────────┐
+│ [ICON] FIELD LABEL                   [▼ expand] │
+├─────────────────────────────────────────────────┤
+│ VALUE                                           │
+│ Lorem ipsum dolor sit amet...                  │
+│                                                 │
+│ ▌ RATIONALE                                    │
+│   Why this decision was made...                │
+└─────────────────────────────────────────────────┘
+```
+
+The rationale block always has:
+- A vertical amber left-border (2px)
+- Label "RATIONALE" in 10px uppercase amber text
+- Body text in muted secondary colour, italic
+
+### 3.6 — Script Section Cards
+
+Each script section in the right column renders as a compact card:
+
+```
+┌─────────────────────────────────────────────────┐
+│ [HOOK] S01        Target: 30s | ~70 words       │
+├─────────────────────────────────────────────────┤
+│ NARRATION                                       │
+│ "By the end of this video..."                  │
+│                                                 │
+│ [▼ Visual Prompt]  [▼ Audio Cue]  [▼ Rationale]│
+│                                         [↻ regen]│
+└─────────────────────────────────────────────────┘
+```
+
+Visual Prompt, Audio Cue, and Rationale sub-sections are collapsed by default.
+Click to expand. This keeps the script column scannable without hiding content.
+
+Hook Audit results render as a row of 5 pass/fail badges below the narration.
+
+### 3.7 — Typography & Spacing Tokens
+
+```css
+--font-size-base: 12px;
+--font-size-label: 10px;
+--font-size-mono: 11px;
+--spacing-tight: 4px;
+--spacing-compact: 8px;
+--spacing-standard: 12px;
+--color-rationale-border: #EF9F27;
+--color-rationale-text: #854F0B;
+--color-rationale-bg: #FAEEDA;
+```
+
+Replace all `p-6` Tailwind classes with `p-2` or `p-3`.
+Replace all `text-base` with `text-xs`.
+Replace all `gap-6` with `gap-2`.
+
+### 3.8 — Footer: Terminal + Telemetry Side-by-Side
+
+```css
+.footer-panel {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  height: 160px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.terminal {
+  font-family: monospace;
+  font-size: 11px;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.3);
+}
+
+.telemetry {
+  padding: 8px 12px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+```
+
+Terminal must auto-scroll to bottom on every new log line.
+Telemetry renders GPU cards in a compact single-column list (no grid).
+
+---
+
+## STEP 4: Frontend Architecture
+
+### 4.1 — Technology Stack
+
+- Tailwind CSS (already loaded — do not re-import)
+- CSS Grid for macro layout
+- Vanilla JavaScript (ES6+) — no additional framework needed
+- Dark mode: `bg-gray-900` base, `bg-gray-800/50` surface, `border-gray-700/30` borders
+- Accent colours: green (#10b981) for approved/active, amber (#f59e0b) for edit/warning,
+  red (#ef4444) for reject/error, blue (#3b82f6) for info
+
+### 4.2 — State Management
+
+Maintain a single `window.SPARK_STATE` object:
+
+```javascript
+window.SPARK_STATE = {
+  job_id: null,
+  channel_id: null,
+  phase1_response: null,      // original LLM response — never mutated
+  phase1_edited: {},          // user edits keyed by field path
+  pipeline_step: 'idle',      // idle | running | awaiting_approval | dispatched
+  edit_mode_active: false,
+  export_format: 'md',
+  export_sections: {
+    market_research: true,
+    titles: true,
+    thumbnails: true,
+    script: true,
+    asset_manifest: true,
+    seo_metadata: true,
+    raw_metadata: false
+  }
+}
+```
+
+On "Approve & Dispatch": merge `phase1_response` with `phase1_edited` (edited values
+take priority) and POST the merged object to the dispatch endpoint.
+
+### 4.3 — Field Edit Tracking
+
+Every editable field must have a `data-field-path` attribute matching its JSON path:
+
+```html
+<textarea data-field-path="section_2_title_strategy.variants[0].title">
+  Inside the macroeconomics global finance crypto trends 2026 War
+</textarea>
+```
+
+On every `input` or `change` event, write to `SPARK_STATE.phase1_edited[fieldPath]`.
+On dispatch, read all edited values and overlay onto the original response.
+
+---
+
+## STEP 5: Phase 1 Export System
+
+### 5.1 — Export Button Placement
+
+Add an "Export" button in the action row between "Edit Assets" and "Approve & Dispatch".
+Style: neutral grey, outlined. Icon: download arrow.
+
+### 5.2 — Export Panel
+
+When "Export" is clicked, show a compact overlay panel (not a full modal — use an
+absolutely-positioned card anchored above the action row):
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Export Phase 1 for External LLM Review                  │
+├────────────────────────────┬────────────────────────────┤
+│ FORMAT                     │ INCLUDE SECTIONS           │
+│ [● Markdown] [○ Text] [○ JSON] │ ☑ Market Research (5W+H) │
+│                            │ ☑ Topic Shortlist          │
+│ PREPEND REVIEW PROMPT      │ ☑ Title Variants           │
+│ ☑ Auto-prepend LLM brief   │ ☑ Thumbnail Concepts       │
+│                            │ ☑ Master Script            │
+│ [Preview export header ↗]  │ ☑ Asset Manifest           │
+│                            │ ☑ SEO Metadata             │
+│                            │ ☐ Raw metadata             │
+├────────────────────────────┴────────────────────────────┤
+│ [↓ Download file]   [⧉ Copy to clipboard]              │
+│ Filename: phase1_MacroLens_pipeline_ccbfd28f.md         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 5.3 — Auto-Prepended LLM Review Prompt
+
+When the "Auto-prepend LLM brief" toggle is ON, prepend the following block
+at the very top of every export:
+
+```
+# External LLM Review Brief
+# Phase 1 Pre-Production Package — [CHANNEL NAME]
+# Job ID: [JOB_ID] | Exported: [TIMESTAMP]
+
+## Instructions for reviewing LLM
+
+You are a senior YouTube content strategist and monetisation analyst.
+Review the Phase 1 Pre-Production Intelligence Brief below and provide
+structured feedback on each section.
+
+For each section, provide:
+- A score from 1 to 10
+- 2–3 specific strengths
+- 2–3 specific weaknesses or risks
+- One concrete improvement recommendation
+
+Sections to review:
+1. Market research quality — are the 5W+H answers specific and credible?
+2. Topic shortlist — was the winning topic the right choice? What was missed?
+3. Title CTR potential — do the titles create genuine curiosity gap?
+4. Thumbnail effectiveness — will these stand out in the YouTube feed?
+5. Hook strength — will this retain viewers through the first 30 seconds?
+6. Script pacing and structure — is the narrative arc compelling?
+7. Monetisation strategy — is the revenue plan realistic and specific?
+8. Asset generation prompts — are the ComfyUI and ACE-Step prompts
+   detailed enough to produce consistent, on-brand output?
+
+Be direct. Flag weak lines by quoting them. Do not be diplomatic at the
+expense of being useful. The human reviewer will use your feedback to
+decide whether to approve, amend, or reject this package.
+
+---
+[PHASE 1 CONTENT BEGINS BELOW]
+---
+```
+
+### 5.4 — Markdown Export Format
+
+When format = Markdown, render the export as follows:
+
+```markdown
+# Phase 1 Intelligence Brief — [CHANNEL NAME]
+**Job ID:** [JOB_ID]
+**Channel:** [CHANNEL_NAME] ([CHANNEL_HANDLE])
+**Input Topic:** [INPUT_TOPIC]
+**Generated:** [TIMESTAMP]
+**Target Duration:** [DURATION]
+
+---
+
+## Section 1 — Market Research & Strategic Rationale
+
+### What was researched
+[value]
+
+> **Rationale:** [rationale]
+
+### What was found
+[value]
+
+> **Rationale:** [rationale]
+
+### Who is the audience
+**Demographics:** [demographics]
+**Psychographics:** [psychographics]
+**Viewing context:** [viewing_context]
+
+> **Rationale:** [rationale]
+
+### When and where
+**Timeliness:** [timeliness]
+**Market context:** [market_context]
+
+> **Rationale:** [rationale]
+
+### Why this topic
+**Search volume signal:** [search_volume_signal]
+**CPM potential:** [cpm_potential]
+**Competition gap:** [competition_gap]
+
+> **Rationale:** [rationale]
+
+### How we monetise
+**AdSense strategy:** [adsense_strategy]
+**Sponsorship angle:** [sponsorship_angle]
+**Digital product:** [digital_product_tie_in]
+**Affiliate opportunities:** [affiliate_opportunities]
+
+> **Rationale:** [rationale]
+
+### Topic shortlist
+
+| Topic | CTR Score | AdSense Fit | Audience Fit | Competition | Selected |
+|-------|-----------|-------------|--------------|-------------|----------|
+| [topic] | [score] | [fit] | [fit] | [level] | ✓ / ✗ |
+
+**Selection rationale:** [selection_rationale]
+
+---
+
+## Section 2 — Title Strategy
+
+**CTR framework applied:** [ctr_framework_applied]
+
+### Title variants
+
+**#1 (Recommended):** [title]
+- Hook type: [hook_type]
+- Psychological trigger: [psychological_trigger]
+- Thumbnail compatibility: [thumbnail_compatibility]
+> **Rationale:** [rationale]
+
+**#2:** [title]
+> **Rationale:** [rationale]
+
+**#3:** [title]
+> **Rationale:** [rationale]
+
+**A/B test recommendation:** [a_b_test_recommendation]
+
+---
+
+## Section 3 — Thumbnail Strategy
+
+**Visual CTR principles:** [visual_ctr_principles_applied]
+
+### Concept 1 (Recommended) — TH_01
+- **Subject:** [subject]
+- **Environment:** [environment]
+- **Lighting:** [lighting]
+- **Colour palette:** [colour_palette]
+- **Text overlay:** [text_overlay]
+- **Emotion target:** [emotion_target]
+
+**ComfyUI generation prompt:**
+```
+[comfyui_generation_prompt]
+```
+
+**Negative prompt:**
+```
+[comfyui_negative_prompt]
+```
+
+> **Rationale:** [rationale]
+
+---
+
+## Section 4 — Master Script
+
+**Narrative arc:** [narrative_arc]
+**Total target duration:** [total_target_duration_seconds]s
+**Estimated word count:** [total_estimated_word_count]
+
+### Script QA Results
+| Check | Result |
+|-------|--------|
+| Word count within target | [pass/fail] |
+| Hook audit overall | [pass/fail] |
+| Tone alignment | [pass/fail] |
+| Banned terms check | [pass/fail] |
+| Visual prompt coverage | [pass/fail] |
+| Audio cue coverage | [pass/fail] |
+
+---
+
+### S01 — HOOK (30s | ~70 words)
+
+**Narration:**
+> [narration]
+
+**Hook audit:**
+| Check | Result |
+|-------|--------|
+| Urgency signal | [pass/fail] |
+| Specific promise | [pass/fail] |
+| No preamble | [pass/fail] |
+| Pattern interrupt | [pass/fail] |
+| Viewer benefit ≤20 words | [pass/fail] |
+
+**Visual generation prompt:**
+- Scene: [scene_description]
+- Camera: [camera_movement] | Motion: [motion_strength]
+- Colour mood: [colour_mood]
+- On-screen text: [on_screen_text]
+```
+[comfyui_prompt]
+```
+
+**Audio cue:**
+- Mood: [mood] | Tempo: [tempo] | Instruments: [instrumentation]
+- Energy curve: [energy_curve]
+```
+[ace_step_prompt]
+```
+
+> **Rationale:** [rationale]
+
+[repeat for each section]
+
+---
+
+## Section 5 — Asset Generation Manifest
+
+**Total assets to generate:**
+- Images: [count]
+- Voiceover tracks: [count]
+- Music tracks: 1
+- Video blocks: [count]
+
+### Images
+| Asset ID | Type | Section | Resolution |
+|----------|------|---------|------------|
+| [id] | [type] | [section] | [res] |
+
+### Audio tracks
+| Asset ID | Type | Section | Duration |
+|----------|------|---------|----------|
+| [id] | [type] | [section] | [duration]s |
+
+### Video blocks
+| Asset ID | Source Keyframe | Section | Duration | Motion |
+|----------|----------------|---------|----------|--------|
+| [id] | [keyframe] | [section] | [duration]s | [strength] |
+
+---
+
+## Section 6 — SEO & Upload Metadata
+
+**Recommended title:** [recommended_title]
+
+**Description:**
+[hook_line]
+
+[summary]
+
+[chapters_placeholder]
+
+[channel_links]
+[hashtags joined by space]
+
+**Tags:**
+[all tags joined by comma]
+
+**YouTube category ID:** [category_id]
+
+> **Rationale:** [rationale]
+
+---
+*Phase 1 export generated by Spark Media Workstation v3.0*
+*Export format: Markdown | Sections included: [list]*
+```
+
+### 5.5 — Plain Text Export Format
+
+Same content as Markdown but strip all Markdown syntax:
+- Remove `#`, `**`, `>`, `|`, `-`, and backtick fences
+- Use ALL CAPS section headers with underline (===)
+- Use dashes for table-like fields
+- Preserve all rationale content — never strip rationale from text export
+
+### 5.6 — JSON Export Format
+
+Export the raw merged `phase1_response` object (with any edits applied from
+`phase1_edited`) as pretty-printed JSON with 2-space indentation.
+Prepend the LLM review prompt as a `"_review_instructions"` key at the top of
+the JSON object if the toggle is ON.
+
+### 5.7 — File Naming Convention
+
+All exports must follow this naming pattern:
+```
+phase1_[ChannelID]_[JobID]_[YYYYMMDD].[ext]
+```
+Example: `phase1_MacroLens_pipeline_ccbfd28f_20260620.md`
+
+The job ID must be included so that multiple exports from the same channel
+on the same day never overwrite each other.
+
+### 5.8 — Export from Edit Mode
+
+If the user is in edit mode when they click Export, the export must use the
+current DOM values (edited state), not the original LLM response. Add a
+subtle notice in the export header:
+```
+Note: This export reflects manually edited values.
+Original LLM output was amended before export.
+```
+
+---
+
+## Implementation Checklist for Agent
+
+Before marking implementation complete, verify each item:
+
+### Backend
+- [ ] Phase 1 system prompt updated to SPARK-STRATEGY persona
+- [ ] All 6 output schema sections implemented and validated
+- [ ] Every "rationale" field is enforced as non-empty
+- [ ] Request payload contract matches spec
+- [ ] JSON response is parsed and stored as `SPARK_STATE.phase1_response`
+
+### Frontend — Edit Workflow
+- [ ] Four-button action row in correct order with correct colours
+- [ ] Edit mode transforms all display fields to input/textarea elements
+- [ ] Amber EDIT MODE ACTIVE badge appears in panel header
+- [ ] Cancel Edits reverts all fields to original values
+- [ ] Per-field regenerate icons implemented on all specified fields
+- [ ] Micro-prompt input appears inline on regenerate icon click
+- [ ] Dispatch payload reads from DOM, not from memory object
+
+### Frontend — UI Layout
+- [ ] Viewport lock (`height: 100vh; overflow: hidden`) applied
+- [ ] 3-column Phase 1 review layout implemented
+- [ ] Pipeline stepper renders as horizontal pills with correct states
+- [ ] All Section 1 fields render as collapsible accordions
+- [ ] Script sections render as cards with collapsed sub-panels
+- [ ] Rationale blocks have amber left-border accent throughout
+- [ ] Hook audit renders as 5 pass/fail badges
+- [ ] Terminal auto-scrolls on new log entries
+- [ ] Terminal and telemetry are side-by-side in footer
+
+### Frontend — Export System
+- [ ] Export button in action row, correct colour and position
+- [ ] Export panel renders as overlay card (not full modal)
+- [ ] Three format options: Markdown, Plain Text, JSON
+- [ ] Section inclusion checkboxes functional
+- [ ] Auto-prepend review prompt toggle functional
+- [ ] Download triggers correct filename with job ID
+- [ ] Copy to clipboard works across all formats
+- [ ] Edited values used in export when edit mode has been active
+- [ ] Edit notice included in export header when values were amended
+
+---
+
+*Spark Media Workstation — Master Implementation Prompt v3.0*
+*X71 Network Operations | Pipeline system for 12-channel content network*
+*Covers: LLM prompt engineering, edit workflow, UI hardening, export system*
+ENDOFFILE

@@ -1,0 +1,200 @@
+---
+chapter_id: X65
+title: "ffmpeg Cookbook"
+layer: "Assembly"
+status: "implemented"
+purpose: "Standardize FFmpeg command recipes, parameters, and codec profiles"
+owner: "Human/Agent"
+last_updated: "2026-06-15"
+estimated_time: "20m"
+inputs:
+  - "raw_video_inputs"
+outputs:
+  - "transcoded_video_outputs"
+qc_gates:
+  - "ffmpeg_exit_code == 0"
+default_tools:
+  primary: "FFmpeg CLI"
+  fallback: "FFprobe CLI"
+smoke_tests:
+  - "A_minimal"
+  - "B_standard"
+hooks:
+  validate: "validate_X65"
+  run: "run_X65"
+  score: "score_X65"
+  retry: "retry_X65"
+status:
+  state_machine: "NOT_STARTED -> RUNNING -> PASSED | FAILED -> RETRIED -> PASSED | ESCALATE"
+  max_retries: 3
+---
+
+# X65 — ffmpeg Cookbook
+
+## Chapter Card
+**Chapter:** `X65 — ffmpeg Cookbook`  
+**Layer:** `Assembly`  
+**Status:** ✅ IMPLEMENTED  
+**Purpose (1 line):** Provide a central reference library of approved FFmpeg transcode commands and parameters.  
+**Last Verified:** 2026-06-15  
+
+**Inputs (files/keys):**
+- Various raw audio, image, and video assets.
+
+**Outputs (files):**
+- Encoded target deliverables.
+
+**Quality Gates (must pass):**
+- `ffmpeg_exit_code == 0`: Subprocess execution must complete without throwing warning or fatal errors.
+
+**Default tools:**
+- `FFmpeg CLI` (primary video/audio transcoding engine)
+- `FFprobe CLI` (metadata inspection utility)
+
+**Automation hooks:**
+- `validate_X65(job_id)`
+- `run_X65(job_id, profile)`
+- `score_X65(job_id)`
+- `retry_X65(job_id, strategy)`
+
+**Smoke test time:** `~5 min`  
+**Owner:** `Human/Agent`  
+**Last updated:** `2026-06-15`  
+
+---
+
+## 1) Quickstart (Golden Path)
+
+### Goal
+Reference standard command lines to crop, stitch, compress, and transcode audio/video streams uniformly.
+
+### When to run this chapter
+- Whenever integrating new automation scripts that interact with video timelines.
+- For manual recovery tasks during production failure events.
+
+### Default steps (golden path)
+1) Review the target cookbook section matching your assembly needs.
+2) Ensure paths to input files are absolute.
+3) Execute the matching FFmpeg CLI string.
+4) Verify the output file size and metadata values.
+
+### Done looks like
+- [ ] Output exists: Valid target file written.
+- [ ] QC passed: System exit code indicates success.
+
+---
+
+## 2) Factory Contract (Inputs → Outputs → DoD)
+
+### Required Inputs
+| Input | Path/Key | Notes |
+|-------|----------|-------|
+| Target Command | `recipe_name` | The specific cookbook recipe to run |
+
+### Required Outputs
+| Output | Path | Notes |
+|--------|------|-------|
+| Result file | `/jobs/<job_id>/...` | Transcoded output file |
+
+### Definition of Done (DoD)
+`Artifacts exist + QC passed + logs saved + manifest updated.`
+
+---
+
+## 3) Config & Standards (Single Source of Truth)
+
+### Codecs and Formats
+- **Video:** H.264 (`-c:v libx264`) wrapped in MP4 format.
+- **Audio:** AAC (`-c:a aac`) at 192kbps, 44.1kHz stereo.
+- **Pixel Format:** YUV 4:2:0 planar (`-pix_fmt yuv420p`).
+
+---
+
+## 4) Tooling (Approved Stack)
+
+### Primary (default)
+- **Tool/Model:** FFmpeg CLI
+  - **Version/pin:** `>=6.0`
+  - **Compute notes:** CPU execution (uses multithreading parameters if available).
+
+---
+
+## 5) Procedure (Operator Steps)
+
+### Step 1 — Select Recipe and Execute
+- **Inputs:** Raw media assets.
+- **Action:** Run the matching command line from the recipes list.
+- **Expected output:** Returns exit code 0.
+- **Common failures:** Input stream mapping errors.
+- **Fix:** Confirm stream index values using `ffprobe`.
+
+---
+
+## 6) Reference Recipes (The Cookbook)
+
+### Recipe A — Combine Still Image and Audio
+```bash
+ffmpeg -y -loop 1 -framerate 25 -i image.png -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -ar 44100 -ac 2 -pix_fmt yuv420p -vf scale=1024:1024 -shortest output.mp4
+```
+
+### Recipe B — Concatenate Scenes List
+Write paths to `list.txt`:
+```text
+file 'scene_0.mp4'
+file 'scene_1.mp4'
+```
+Execute:
+```bash
+ffmpeg -y -f concat -safe 0 -i list.txt -c copy output_concat.mp4
+```
+
+### Recipe C — Sidechain Compress Audio Ducking
+```bash
+ffmpeg -y -i video.mp4 -i voiceover.wav -i music.mp3 -filter_complex "[2:a]sidechaincompress=threshold=0.01:ratio=2.5[ducked];[1:a][ducked]amix=inputs=2" -c:v copy output.mp4
+```
+
+### Recipe D — Burn in Subtitles
+```bash
+ffmpeg -y -i video.mp4 -vf "subtitles=caption.srt" output_captioned.mp4
+```
+
+### Recipe E — Extract Audio track
+```bash
+ffmpeg -y -i video.mp4 -vn -c:a pcm_s16le -ar 16000 -ac 1 voiceover_extract.wav
+```
+
+---
+
+## 7) Smoke Tests (Mandatory)
+
+### Smoke Test A — Minimal (fast)
+- **Goal:** Run an FFprobe file check.
+- **Pass criteria:** Outputs correct file frame count info.
+
+---
+
+## 8) QC Checklist + Scoring
+
+### QC checklist (tick-box)
+- [ ] Outputs contain correct H.264 byte prefixes.
+
+---
+
+## 9) Metrics to Record (for Optimization)
+
+Record into logs/DB:
+- `runtime_seconds`
+
+---
+
+## 10) Troubleshooting (Top Issues)
+
+### Issue 1 — Non-monotonically Increasing Timestamps
+- **Cause:** Input files generated by separate models have variable framerate flags.
+- **Fix:** Add `-fflags +genpts` at the beginning of the command line string to force timestamp regeneration.
+
+---
+
+## 11) Change Log (Chapter Local)
+
+- 2026-06-15 — Wrote FFmpeg recipe entries.

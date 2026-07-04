@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Media Factory Node 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/mobile.css">
+<style>
+  :root {
+    --bg: #0b0b13; 
+    --card: rgba(22, 22, 38, 0.7); 
+    --border: rgba(42, 42, 74, 0.4);
+    --accent: #00f0ff; 
+    --accent2: #8b00ff; 
+    --text: #f0f0f5;
+    --text-muted: #8a8a9e;
+    --green: #00ff88; 
+    --red: #ff3366; 
+    --yellow: #ffb700;
+    --glass: rgba(16, 16, 28, 0.6);
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body { 
+    font-family: 'Outfit', system-ui, sans-serif; 
+    background: radial-gradient(circle at top right, #1b0c36, var(--bg));
+    color: var(--text); 
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  .header { 
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    padding: 16px 28px; 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+  }
+  
+  .header h1 { 
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px; 
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+  }
+  
+  .gpu-bar { display: flex; gap: 16px; }
+  
+  .gpu-chip { 
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: 8px 16px; 
+    min-width: 200px;
+    backdrop-filter: blur(4px);
+  }
+  
+  .gpu-chip .name { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+  
+  .gpu-chip .bar-bg { background: rgba(0,0,0,0.5); border-radius: 4px; height: 6px; margin: 6px 0 4px; overflow: hidden; }
+  
+  .gpu-chip .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  
+  .gpu-chip .stats { font-size: 11px; color: var(--text-muted); }
+  
+  .services-bar { 
+    display: flex; 
+    gap: 16px; 
+    padding: 10px 28px; 
+    background: rgba(0, 0, 0, 0.2); 
+    border-bottom: 1px solid var(--border); 
+    font-size: 12px; 
+    align-items: center; 
+    flex-wrap: wrap;
+  }
+  
+  .services-bar span { color: var(--text-muted); }
+  
+  .status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .status.online { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+  .status.offline { background: rgba(255,51,102,0.1); color: var(--red); border: 1px solid rgba(255,51,102,0.2); }
+  
+  .tabs { 
+    display: flex; 
+    border-bottom: 1px solid var(--border); 
+    background: var(--glass);
+    backdrop-filter: blur(8px);
+    overflow-x: auto;
+  }
+  
+  .tab { 
+    padding: 16px 24px; 
+    cursor: pointer; 
+    font-size: 13px; 
+    font-weight: 600;
+    color: var(--text-muted); 
+    border-bottom: 2px solid transparent; 
+    transition: all 0.25s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  
+  .tab:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(0,240,255,0.02); }
+  
+  .main-container { display: flex; min-height: calc(100vh - 165px); position: relative; }
+  
+  .content-area { flex: 1; min-width: 0; padding: 32px; overflow-y: auto; }
+  
+  .panel { display: none; max-width: 1000px; margin: 0 auto; animation: fadeIn 0.4s ease; }
+  .panel.active { display: block; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .card-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 768px) {
+    .card-grid { grid-template-columns: 1fr 1fr; }
+  }
+  
+  .card { 
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    padding: 24px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+  }
+  
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  label { 
+    display: block; 
+    font-size: 11px; 
+    color: var(--text-muted); 
+    margin-bottom: 6px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    font-weight: 600;
+  }
+  
+  select, input[type="text"], input[type="number"], textarea {
+    width: 100%; 
+    padding: 12px 16px; 
+    background: rgba(0, 0, 0, 0.4); 
+    border: 1px solid var(--border);
+    border-radius: 10px; 
+    color: var(--text); 
+    font-size: 14px; 
+    margin-bottom: 18px; 
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  
+  select:focus, input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0, 240, 255, 0.2); }
+  
+  textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+  
+  .row { display: flex; gap: 16px; }
+  .row > * { flex: 1; }
+  
+  .btn { 
+    padding: 12px 28px; 
+    border: none; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all 0.25s ease; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px;
+  }
+  
+  .btn-primary { 
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); 
+    color: #000;
+    font-weight: 700;
+  }
+  
+  .btn-primary:hover { 
+    opacity: 0.95; 
+    transform: translateY(-1.5px); 
+    box-shadow: 0 4px 16px rgba(0, 240, 255, 0.3);
+  }
+  
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+  
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+  
+  .output { 
+    margin-top: 18px; 
+    background: rgba(0, 0, 0, 0.5); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: 20px; 
+    min-height: 80px; 
+    white-space: pre-wrap; 
+    font-family: 'Consolas', monospace; 
+    font-size: 13px; 
+    overflow-x: auto; 
+    max-height: 400px; 
+    overflow-y: auto; 
+  }
+  
+  .output img, .output video, .output audio { max-width: 100%; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border); }
+  
+  /* Sidebar */
+  .asset-sidebar {
+    width: 300px; 
+    background: var(--glass); 
+    border-left: 1px solid var(--border);
+    display: flex; 
+    flex-direction: column; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    position: relative;
+    backdrop-filter: blur(8px);
+  }
+  
+  .asset-sidebar.collapsed { width: 0; border-left-color: transparent; }
+  .asset-sidebar.collapsed .sidebar-header,
+  .asset-sidebar.collapsed .asset-list { display: none; }
+  
+  .sidebar-toggle {
+    position: absolute; left: -28px; top: 16px; width: 28px; height: 40px;
+    background: var(--card); border: 1px solid var(--border); border-right: none;
+    border-radius: 8px 0 0 8px; color: var(--accent); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    z-index: 100; box-shadow: -4px 0 16px rgba(0,0,0,0.5);
+  }
+  
+  .sidebar-header { padding: 18px; border-bottom: 1px solid var(--border); }
+  .asset-list { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+  
+  .asset-item {
+    background: rgba(0, 0, 0, 0.3); 
+    border: 1px solid var(--border); 
+    border-radius: 10px;
+    padding: 8px; 
+    position: relative; 
+    cursor: grab;
+    transition: all 0.2s ease;
+  }
+  .asset-item:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,240,255,0.1); }
+  .asset-item img, .asset-item video { width: 100%; border-radius: 6px; display: block; max-height: 120px; object-fit: cover; }
+  .asset-item .filename { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+  
+  /* Drag & Drop */
+  .drop-zone {
+    border: 2px dashed var(--border); 
+    border-radius: 10px; 
+    padding: 24px;
+    text-align: center; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    transition: all 0.25s ease;
+    background: rgba(0, 0, 0, 0.3); 
+    font-size: 13px; 
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); color: var(--accent); background: rgba(0,240,255,0.03); }
+  
+  .toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+  
+  .switch input { opacity: 0; width: 0; height: 0; }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider { background-color: var(--accent2); }
+  input:checked + .slider:before { transform: translateX(20px); }
+  
+  /* Collapsible */
+  .advanced-trigger {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex; align-items:center; gap:16px;">
+    <h1>SPARK MEDIA FACTORY NODE 1</h1>
+    <a href="/mail" style="color:var(--accent); text-decoration:none; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border:1px solid var(--accent); padding:4px 10px; border-radius:6px; background:rgba(0,240,255,0.05);">✉ Go to Mail Organizer</a>
+  </div>
+  <div class="gpu-bar" id="gpuBar">
+    <div class="gpu-chip">
+      <div class="name">RTX 3090</div>
+      <div class="bar-bg"><div class="bar-fill" id="gpu0bar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="stats" id="gpu0stats">Loading...</div>
+    </div>
+    <div class="gpu-chip">
+      <div class="name">RTX 3060</div>
+      <div class="bar-bg"><div class="bar-fill" id="gpu1bar" style="width:0%;background:var(--accent2)"></div></div>
+      <div class="stats" id="gpu1stats">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<div class="services-bar">
+  <span>Services:</span>
+  <span id="svc-ollama">Ollama <span class="status offline" id="svc-ollama-st">?</span></span>
+  <span id="svc-comfyui">ComfyUI <span class="status offline" id="svc-comfyui-st">?</span></span>
+  <span id="svc-whisper">Whisper <span class="status offline" id="svc-whisper-st">?</span></span>
+  <span id="svc-f5tts">F5-TTS <span class="status offline" id="svc-f5tts-st">?</span></span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('text')">Text & RAG</div>
+  <div class="tab" onclick="switchTab('image')">FLUX Image</div>
+  <div class="tab" onclick="switchTab('fastimage')">Non-FLUX Image</div>
+  <div class="tab" onclick="switchTab('video')">Video</div>
+  <div class="tab" onclick="switchTab('audio')">Audio & Speech</div>
+  <div class="tab" onclick="switchTab('music')">Music</div>
+  <div class="tab" onclick="switchTab('3d')">3D Assets</div>
+  <div class="tab" onclick="switchTab('extract')">Ingest & OCR</div>
+  <div class="tab" onclick="switchTab('postprocess')">Post-Process</div>
+  <div class="tab" onclick="switchTab('curate')">Smart Curation</div>
+  <div class="tab" onclick="switchTab('story')">AI Storyteller</div>
+  <div class="tab" onclick="switchTab('research')">Deep Research</div>
+  <div class="tab" onclick="switchTab('moa')">MoA Chat</div>
+  <div class="tab" onclick="switchTab('meme')">Meme Factory</div>
+  <div class="tab" onclick="switchTab('rag-memory')">Memory DB</div>
+  <div class="tab" onclick="switchTab('finance')" style="color:var(--accent);">Finance Team</div>
+  <div class="tab" onclick="switchTab('mcp')" style="color:var(--accent);">MCP Agent</div>
+  <div class="tab" onclick="switchTab('chat-source')" style="color:var(--accent);">Chat with Source</div>
+  <div class="tab" onclick="switchTab('voice-agent')" style="color:var(--accent);">Voice Agent</div>
+  <div class="tab" onclick="switchTab('gen-ui')" style="color:var(--accent);">Generative UI</div>
+</div>
+
+<div class="main-container">
+  <div class="content-area">
+    
+    <!-- TEXT PANEL -->
+    <div class="panel active" id="panel-text">
+      <div class="card">
+        <div class="card-title">📝 Text Generation & Storytelling</div>
+        <label>Model</label>
+        <select id="text-model">
+          <option value="qwen3.6:27b">Qwen 3.6 (27B - Prompt Architect)</option>
+          <option value="qwen3:14b">Qwen 3.6 (14B)</option>
+          <option value="qwen3:8b">Qwen 3.6 (8B)</option>
+          <option value="qwen3:4b">Qwen 3.6 (4B - Instant Router)</option>
+          <option value="llama3.2-vision:11b">Llama 3.2 Vision (11B)</option>
+          <option value="llama3.2:latest">Llama 3.2 (3B)</option>
+          <option value="phi3:latest">Phi-3 (3.8B)</option>
+        </select>
+        
+        <label>System Prompt / Instruction</label>
+        <input type="text" id="text-system" value="You are a cinematic prompt architect. Expand user concepts into rich, precise visual descriptions." placeholder="System prompt...">
+        
+        <div class="toggle-switch">
+          <label class="switch">
+            <input type="checkbox" id="text-rag">
+            <span class="slider"></span>
+          </label>
+          <span style="font-size: 13px; font-weight: 600;">Enable Local Memory Search (RAG)</span>
+        </div>
+
+        <label>Message / Topic Prompt</label>
+        <textarea id="text-input" placeholder="Enter topic, script outline, or prompt context..."></textarea>
+        <button class="btn btn-primary" onclick="sendText()">Generate Text</button>
+        <div class="output" id="text-output">Response will appear here...</div>
+      </div>
+    </div>
+
+    <!-- IMAGE PANEL -->
+    <div class="panel" id="panel-image">
+      <div class="card">
+        <div class="card-title">🎨 Image Generation</div>
+        <label>Prompt</label>
+        <textarea id="img-prompt" placeholder="Describe the image you want to generate..."></textarea>
+        <div class="row">
+          <div>
+            <label>Model</label>
+            <select id="img-model">
+              <option value="flux1-schnell-q8.gguf">FLUX.1 Schnell Q8</option>
+            </select>
+          </div>
+          <div>
+            <label>Resolution</label>
+            <select id="img-res">
+              <option value="1024x1024">Square (1024x1024)</option>
+              <option value="1280x720">Landscape (1280x720)</option>
+              <option value="720x1280">Portrait (720x1280)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Steps</label>
+            <input type="number" id="img-steps" value="25" min="4" max="50">
+          </div>
+          <div>
+            <label>Negative Prompt</label>
+            <input type="text" id="img-neg" value="blurry, low quality, distorted" placeholder="Negative features...">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generateImage()">Generate Image</button>
+        <div class="output" id="img-output">Image output will appear here...</div>
+      </div>
+    </div>
+
+    <!-- FAST IMAGE PANEL -->
+    <div class="panel" id="panel-fastimage">
+      <div class="card">
+        <div class="card-title">⚡ Other Image Models (Non-FLUX)</div>
+        <label>Prompt</label>
+        <textarea id="fastimg-prompt" placeholder="Describe the image you want to generate..."></textarea>
+        <div class="row">
+          <div>
+            <label>Model</label>
+            <select id="fastimg-model">
+              <option value="dreamshaper_8.safetensors">DreamShaper 8 (SD 1.5 - Fast)</option>
+              <option value="sd_xl_base_1.0.safetensors">SDXL 1.0 Base</option>
+              <option value="juggernaut_xl_lightning.safetensors">Juggernaut XL Lightning (4-Step)</option>
+              <option value="z_image_turbo.safetensors">Z-Image Turbo</option>
+            </select>
+          </div>
+          <div>
+            <label>Resolution</label>
+            <select id="fastimg-res">
+              <option value="1024x1024">Square (1024x1024)</option>
+              <option value="1280x720">Landscape (1280x720)</option>
+              <option value="720x1280">Portrait (720x1280)</option>
+              <option value="512x512">Classic Square (512x512)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Steps</label>
+            <input type="number" id="fastimg-steps" value="4" min="1" max="25">
+          </div>
+          <div>
+            <label>Negative Prompt</label>
+            <input type="text" id="fastimg-neg" value="blurry, low quality, distorted" placeholder="Negative features...">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generateFastImage()">Generate Fast Image</button>
+        <div class="output" id="fastimg-output">Image output will appear here...</div>
+      </div>
+    </div>
+
+    <!-- VIDEO PANEL -->
+    <div class="panel" id="panel-video">
+      <div class="card">
+        <div class="card-title">🎬 Video Generation</div>
+        
+        <div class="drop-zone-row" id="vid-image-inputs" style="display: none; margin-bottom:18px; gap:16px;">
+          <div class="drop-zone-container" id="vid-start-container" style="flex:1;">
+            <label>Start Frame Image</label>
+            <div class="drop-zone" id="vid-start-drop" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event, 'vid-start-file', 'vid-start-preview')" onclick="document.getElementById('vid-start-file').click()">
+              <span>Drop image or click to browse</span>
+              <input type="file" id="vid-start-file" accept="image/*" style="display: none;" onchange="previewFile(this, 'vid-start-preview')">
+            </div>
+            <div class="drop-zone-preview" id="vid-start-preview-container" style="display:none; margin-top:8px; text-align:center;">
+              <img id="vid-start-preview" style="max-height:80px; border-radius:6px;">
+            </div>
+          </div>
+          <div class="drop-zone-container" id="vid-end-container" style="flex:1; display: none;">
+            <label>End Frame Image</label>
+            <div class="drop-zone" id="vid-end-drop" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event, 'vid-end-file', 'vid-end-preview')" onclick="document.getElementById('vid-end-file').click()">
+              <span>Drop image or click to browse</span>
+              <input type="file" id="vid-end-file" accept="image/*" style="display: none;" onchange="previewFile(this, 'vid-end-preview')">
+            </div>
+            <div class="drop-zone-preview" id="vid-end-preview-container" style="display:none; margin-top:8px; text-align:center;">
+              <img id="vid-end-preview" style="max-height:80px; border-radius:6px;">
+            </div>
+          </div>
+        </div>
+
+        <label>Prompt</label>
+        <textarea id="vid-prompt" placeholder="Describe video content..."></textarea>
+        
+        <div class="row">
+          <div>
+            <label>Model</label>
+            <select id="vid-model">
+              <option value="ltx-2.3-22b-dev-Q4_K_M.gguf">LTX-2.3 (22B Distilled)</option>
+              <option value="cogvideox_5b_i2v_bf16.safetensors">CogVideoX 5B (I2V bf16)</option>
+              <option value="allegro_v1_0_fp8.safetensors">Allegro (FP8)</option>
+              <option value="dreamshaper_8.safetensors">AnimateDiff (SD 1.5 - DreamShaper)</option>
+              <option value="wan2.2_14b_q4.gguf">Wan 2.2 (14B MoE GGUF)</option>
+            </select>
+          </div>
+          <div>
+            <label>Mode</label>
+            <select id="vid-mode" onchange="handleVidModeChange()">
+              <option value="t2v" selected>Text-to-Video</option>
+              <option value="i2v">Image-to-Video</option>
+              <option value="interpolation">Interpolation (First/Last)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Width</label>
+            <input type="number" id="vid-width" value="768" min="256" max="1280" step="64">
+          </div>
+          <div>
+            <label>Height</label>
+            <input type="number" id="vid-height" value="448" min="256" max="720" step="64">
+          </div>
+          <div>
+            <label>Frames</label>
+            <input type="number" id="vid-frames" value="25" min="9" max="97">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="generateVideo()">Generate Video</button>
+        <div class="output" id="vid-output">Video output will appear here...</div>
+      </div>
+    </div>
+
+    <!-- AUDIO & SPEECH PANEL -->
+    <div class="panel" id="panel-audio">
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">🎙️ Audio Transcription (Whisper)</div>
+          <label>Audio File</label>
+          <div class="file-input">
+            <input type="file" id="stt-file" accept="audio/*" onchange="sttFileSelected(this)">
+            <div class="drop-zone" id="stt-label">Click or drop audio file here</div>
+          </div>
+          <label style="margin-top:14px">Language</label>
+          <select id="stt-lang">
+            <option value="en">English</option>
+            <option value="">Auto-detect</option>
+          </select>
+          <button class="btn btn-primary" onclick="transcribeAudio()">Transcribe Audio</button>
+          <div class="output" id="stt-output">Transcription output...</div>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">🔊 Speech Generation (Kokoro / F5)</div>
+          <label>Model / Voice</label>
+          <select id="tts-voice">
+            <option value="en">Default English</option>
+            <option value="es">Spanish</option>
+            <option value="pt">Portuguese</option>
+            <option value="de">German</option>
+          </select>
+          <label>Text input</label>
+          <textarea id="tts-input" placeholder="Type text to synthesize into speech..."></textarea>
+          <button class="btn btn-primary" onclick="generateSpeech()">Synthesize Speech</button>
+          <div class="output" id="tts-output">Audio player...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MUSIC PANEL -->
+    <div class="panel" id="panel-music">
+      <div class="card">
+        <div class="card-title">🎵 Music Generation (ACE-Step & HeartMuLa)</div>
+        <label>Model Pipeline</label>
+        <select id="music-model">
+          <option value="ace-step-1.5-base">ACE-Step 1.5 Base (Song Draft)</option>
+          <option value="heartmula-ace-step">ACE-Step XL Turbo + HeartMuLa 3B (Full Vocal Song)</option>
+        </select>
+        <label>Genre/Style Prompt</label>
+        <input type="text" id="music-prompt" placeholder="e.g. Cinematic synthwave with energetic beat...">
+        <label>Lyrics (Optional)</label>
+        <textarea id="music-lyrics" placeholder="Add lyrics for vocal synthesis..."></textarea>
+        <button class="btn btn-primary" onclick="generateMusic()">Synthesize Track</button>
+        <div class="output" id="music-output">Track will appear here...</div>
+      </div>
+    </div>
+
+    <!-- 3D PANEL -->
+    <div class="panel" id="panel-3d">
+      <div class="card">
+        <div class="card-title">📦 3D Asset Generation (Hunyuan3D)</div>
+        <label>Mode</label>
+        <select id="threed-mode">
+          <option value="shape">Shape Only (Fast Geometry)</option>
+          <option value="full">Shape + Texture (Full PBR Asset)</option>
+          <option value="mv">Multi-View (Cinematic Hero)</option>
+        </select>
+        <label>Prompt or Image description</label>
+        <input type="text" id="threed-prompt" placeholder="e.g. A low-poly medieval chest...">
+        <button class="btn btn-primary" onclick="generate3D()">Generate 3D Asset</button>
+        <div class="output" id="threed-output">3D file url will appear here...</div>
+      </div>
+    </div>
+
+    <!-- INGEST & OCR PANEL -->
+    <div class="panel" id="panel-extract">
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">👁️ Vision OCR (Qwen2.5-VL)</div>
+          <div class="drop-zone" onclick="document.getElementById('ocr-file').click()">
+            <span>Click to browse image for OCR</span>
+            <input type="file" id="ocr-file" accept="image/*" style="display:none;" onchange="previewOCRFile(this)">
+          </div>
+          <div id="ocr-preview-container" style="display:none; margin-top:12px; text-align:center;">
+            <img id="ocr-preview" style="max-height:150px; border-radius:8px;">
+          </div>
+          <button class="btn btn-primary" onclick="runOCR()" style="margin-top:12px;">Run OCR</button>
+          <div class="output" id="ocr-output">OCR result...</div>
+          <button class="btn btn-secondary" onclick="ingestText('ocr-output')" style="margin-top:10px; width:100%;">Ingest to RAG Memory</button>
+        </div>
+        
+        <div class="card" id="document-link-ingest-card">
+          <div class="card-title">📄 Document & Link Ingest</div>
+          
+          <!-- Sub-tabs -->
+          <div class="sub-tabs" style="display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+            <div class="sub-tab" id="sub-tab-pdf" onclick="switchSubTab('pdf')" style="padding: 8px 16px; cursor: pointer; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; font-size: 12px; text-transform: uppercase; transition: all 0.2s ease;">PDF Document</div>
+            <div class="sub-tab" id="sub-tab-link" onclick="switchSubTab('link')" style="padding: 8px 16px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; font-weight: 600; font-size: 12px; text-transform: uppercase; transition: all 0.2s ease;">Web Link (URL)</div>
+            <div class="sub-tab" id="sub-tab-text" onclick="switchSubTab('text')" style="padding: 8px 16px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; font-weight: 600; font-size: 12px; text-transform: uppercase; transition: all 0.2s ease;">Raw Text</div>
+          </div>
+          
+          <!-- Auto-Ingest Option -->
+          <div class="toggle-switch" style="margin-bottom: 18px;">
+            <label class="switch">
+              <input type="checkbox" id="ingest-auto-toggle" checked onchange="handleAutoIngestToggle(this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span style="font-size: 13px; font-weight: 600; color: var(--green);">Auto-Ingest to RAG Memory on Extraction</span>
+          </div>
+
+          <!-- Advanced Ingestion & Chunking Options -->
+          <div class="advanced-trigger" onclick="toggleAdvancedIngestSettings()" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent);">
+            <span>⚙️ Advanced Settings (Cleanup & Chunking)</span>
+            <span id="advanced-ingest-arrow">▼</span>
+          </div>
+          <div id="advanced-ingest-settings" style="display: none; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+            <label style="font-weight: 600; color: var(--accent); display: block; margin-bottom: 8px; font-size: 13px;">Text Cleanup (Regex)</label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; color: var(--text-muted);">
+                <input type="checkbox" id="ingest-clean-spacing" checked> Clean spacing & extra whitespace
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; color: var(--text-muted);">
+                <input type="checkbox" id="ingest-fix-broken-sentences" checked> Fix broken sentences (mid-sentence newlines)
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; color: var(--text-muted);">
+                <input type="checkbox" id="ingest-preserve-paragraphs" checked> Preserve paragraph breaks (\n\n)
+              </label>
+            </div>
+            
+            <label style="font-weight: 600; color: var(--accent); display: block; margin-bottom: 8px; font-size: 13px;">RAG Chunking Limits</label>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+              <div style="flex: 1;">
+                <label style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-muted);">Chunk Size (chars)</label>
+                <input type="number" id="ingest-chunk-size" value="1000" min="100" max="5000" style="padding: 6px; font-size: 12px; width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 6px; color: #fff;">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-muted);">Chunk Overlap (chars)</label>
+                <input type="number" id="ingest-chunk-overlap" value="100" min="0" max="1000" style="padding: 6px; font-size: 12px; width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 6px; color: #fff;">
+              </div>
+            </div>
+            
+            <label style="font-weight: 600; color: var(--accent); display: block; margin-bottom: 8px; font-size: 13px;">Chunking Strategy</label>
+            <select id="ingest-chunk-strategy" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; width: 100%; font-size: 12px;">
+              <option value="sentence" selected>📖 NLTK Sentence Splitting (preserves sentences)</option>
+              <option value="character">📏 Fixed Character Splitting (simple overlap)</option>
+            </select>
+          </div>
+
+          <!-- PDF SUB-PANEL -->
+          <div id="sub-panel-pdf" class="sub-panel">
+            <label>Select PDF File</label>
+            <input type="file" id="pdf-file" accept=".pdf" style="margin-bottom: 12px;">
+            <div class="toggle-switch" style="margin-bottom: 18px;">
+              <label class="switch">
+                <input type="checkbox" id="pdf-ocr">
+                <span class="slider"></span>
+              </label>
+              <span style="font-size: 13px;">Force OCR (for scanned PDFs)</span>
+            </div>
+            <button class="btn btn-primary" onclick="runPDFExtract()" style="width: 100%;">Extract PDF</button>
+          </div>
+
+          <!-- WEB LINK SUB-PANEL -->
+          <div id="sub-panel-link" class="sub-panel" style="display: none;">
+            <label>Webpage URL (Link)</label>
+            <input type="text" id="link-url" placeholder="https://example.com/article" style="margin-bottom: 18px;">
+            <button class="btn btn-primary" onclick="runLinkExtract()" style="width: 100%;">Extract Webpage</button>
+          </div>
+
+          <!-- RAW TEXT SUB-PANEL -->
+          <div id="sub-panel-text" class="sub-panel" style="display: none;">
+            <label>Document Title / Reference Name</label>
+            <input type="text" id="text-title" placeholder="E.g. Custom Notes" style="margin-bottom: 12px;">
+            <label>Text Content</label>
+            <textarea id="text-raw-content" placeholder="Paste or type text document to ingest..." style="min-height: 120px; margin-bottom: 18px;"></textarea>
+            <button class="btn btn-primary" onclick="runTextIngest()" style="width: 100%;">Ingest Raw Text</button>
+          </div>
+
+          <!-- Consolidated Output -->
+          <div class="output" id="pdf-output" style="margin-top: 18px; max-height: 250px;">Extracted text will appear here...</div>
+          <button class="btn btn-secondary" id="btn-manual-ingest" onclick="ingestText('pdf-output')" style="margin-top:10px; width:100%; display: none;">Ingest Manually to RAG Memory</button>
+        </div>
+      </div>
+
+      <!-- INGESTED SOURCES MANAGER -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 8px;">🗃️ RAG Local Memory Manager</span>
+          <button class="btn btn-secondary" onclick="refreshIngestedSources()" style="padding: 6px 12px; font-size: 12px; border-radius: 6px;">🔄 Refresh List</button>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+          Below are the files, websites, and text documents currently indexed in your local RAG memory database (Qdrant).
+        </p>
+        <div class="table-container" style="overflow-x: auto; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); border-radius: 10px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.02);">
+                <th style="padding: 12px 16px; color: var(--accent); font-weight: 600;">Source Name</th>
+                <th style="padding: 12px 16px; color: var(--accent); font-weight: 600;">Type</th>
+                <th style="padding: 12px 16px; color: var(--accent); font-weight: 600; width: 100px;">Chunks</th>
+                <th style="padding: 12px 16px; color: var(--accent); font-weight: 600; text-align: right; width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ingested-sources-body">
+              <tr>
+                <td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted); font-style: italic;">
+                  Click 'Refresh List' to load active memory sources.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top: 18px; display: flex; justify-content: flex-end;">
+          <button class="btn" onclick="clearAllRAGMemory()" style="background: rgba(255, 51, 102, 0.1); color: var(--red); border: 1px solid rgba(255, 51, 102, 0.2); padding: 8px 16px; font-size: 13px;">
+            🗑️ Purge All RAG Memory
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST PROCESS PANEL -->
+    <div class="panel" id="panel-postprocess">
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">⚡ Image Upscaling (Real-ESRGAN)</div>
+          <label>Source Image URL (or drag from gallery)</label>
+          <input type="text" id="upscale-url" placeholder="/output/img_xxxx.png">
+          <label>Scale factor</label>
+          <select id="upscale-factor">
+            <option value="2">2x Upscale</option>
+            <option value="4" selected>4x Upscale</option>
+          </select>
+          <button class="btn btn-primary" onclick="runUpscale()">Upscale Image</button>
+          <div class="output" id="upscale-output">Upscaled output...</div>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">👄 Lip Sync (LatentSync)</div>
+          <label>Target Video URL</label>
+          <input type="text" id="lipsync-video" placeholder="/output/vid_xxxx.mp4">
+          <label>Speech Audio URL</label>
+          <input type="text" id="lipsync-audio" placeholder="/output/tts_xxxx.wav">
+          <button class="btn btn-primary" onclick="runLipsync()">Sync Audio & Video</button>
+          <div class="output" id="lipsync-output">Lip-sync video...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMART CURATION PANEL -->
+    <div class="panel" id="panel-curate">
+      <div class="card">
+        <div class="card-title">🤖 Smart Curation & Highlight Reels</div>
+        
+        <label>Source Directory Path</label>
+        <input type="text" id="curate-dir" value="/app/media_ingest" placeholder="/app/media_ingest">
+        
+        <label>Curation Strictness (1 - 100)</label>
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px;">
+          <input type="range" id="curate-strictness" min="1" max="100" value="50" style="flex:1; accent-color:var(--accent);" oninput="document.getElementById('strictness-val').textContent = this.value">
+          <span id="strictness-val" style="width:30px; font-weight:600; text-align:right;">50</span>
+        </div>
+        
+        <label>Pacing (Clip Duration)</label>
+        <div class="toggle-switch">
+          <label class="switch">
+            <input type="checkbox" id="curate-pacing" onchange="document.getElementById('pacing-label').textContent = this.checked ? 'Fast-Paced (1s clips)' : 'Cinematic (3s clips)'">
+            <span class="slider"></span>
+          </label>
+          <span id="pacing-label" style="font-size: 13px; font-weight: 600;">Cinematic (3s clips)</span>
+        </div>
+        
+        <button class="btn btn-primary" onclick="generateCuration()" id="btn-curate">Generate Highlight Reel</button>
+        <div class="output" id="curate-output">Curation results will appear here...</div>
+      </div>
+    </div>
+
+    <!-- AI STORYTELLER PANEL -->
+    <div class="panel" id="panel-story">
+      <div class="card">
+        <div class="card-title">📖 AI Storyteller (Chained Agent Pipeline)</div>
+        
+        <label>Story Concept / Topic</label>
+        <textarea id="story-prompt" placeholder="E.g., A futuristic space detective finding a lost pocket watch on Mars..."></textarea>
+        
+        <div class="row">
+          <div>
+            <label>Image Style</label>
+            <select id="story-style">
+              <option value="Cinematic" selected>Cinematic</option>
+              <option value="Anime / Ghibli">Anime / Ghibli</option>
+              <option value="Watercolor / Sketch">Watercolor / Sketch</option>
+              <option value="Cyberpunk">Cyberpunk</option>
+              <option value="Photorealistic">Photorealistic</option>
+            </select>
+          </div>
+          <div>
+            <label>Voice (TTS)</label>
+            <select id="story-voice">
+              <option value="en" selected>English (Default)</option>
+              <option value="es">Spanish</option>
+              <option value="de">German</option>
+              <option value="pt">Portuguese</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Scenes Count</label>
+            <select id="story-scenes">
+              <option value="3" selected>3 Scenes</option>
+              <option value="4">4 Scenes</option>
+              <option value="5">5 Scenes</option>
+            </select>
+          </div>
+          <div>
+            <label>Rendering Engine</label>
+            <select id="story-engine">
+              <option value="flux1-schnell-q8.gguf" selected>FLUX.1 Schnell Q8 (4-Step)</option>
+              <option value="z_image_turbo.safetensors">Z-Image Turbo (8-Step)</option>
+            </select>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="generateStory()" id="btn-story">Generate Story Video</button>
+        <div class="output" id="story-output">Story generation progress and video output will appear here...</div>
+      </div>
+    </div>
+
+    <!-- DEEP RESEARCH PANEL -->
+    <div class="panel" id="panel-research">
+      <div class="card">
+        <div class="card-title">🔍 AI Deep Research Agent (Autonomous Search & Scrape)</div>
+        <label>Research Topic / Query</label>
+        <textarea id="research-prompt" placeholder="E.g., Compare the specifications and use-cases of LTX-2.3 vs Wan 2.2 video generation models..."></textarea>
+        <button class="btn btn-primary" onclick="generateResearch()" id="btn-research">Start Deep Research</button>
+        <div class="output" id="research-output" style="text-align: left; line-height: 1.6; max-height: 500px; overflow-y: auto;">Research report will appear here...</div>
+      </div>
+    </div>
+
+    <!-- MOA PLAYGROUND PANEL -->
+    <div class="panel" id="panel-moa">
+      <div class="card">
+        <div class="card-title">🤝 Mixture of Agents (MoA) Playground</div>
+        
+        <label>System Prompt</label>
+        <input type="text" id="moa-system" value="You are a helpful AI assistant." placeholder="System instruction...">
+        
+        <label>User Prompt</label>
+        <textarea id="moa-prompt" placeholder="Ask something complex to test parallel model consensus..."></textarea>
+        
+        <div class="row" style="align-items: flex-start; gap: 16px;">
+          <div style="flex: 1;">
+            <label>Reference Models (Run Concurrently)</label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <label><input type="checkbox" name="moa-refs" value="qwen3:8b" checked> Qwen 3.6 (8B)</label>
+              <label><input type="checkbox" name="moa-refs" value="llama3.2:latest" checked> Llama 3.2 (3B)</label>
+              <label><input type="checkbox" name="moa-refs" value="phi3:latest" checked> Phi-3 (3.8B)</label>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <label>Synthesizer Model (Aggregator)</label>
+            <select id="moa-synth">
+              <option value="qwen3.6:27b" selected>Qwen 3.6 (27B - Consensus Maker)</option>
+              <option value="qwen3:14b">Qwen 3.6 (14B)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="generateMoAChat()" id="btn-moa" style="margin-top: 18px;">Run Mixture of Agents</button>
+        
+        <div style="display: flex; gap: 16px; margin-top: 18px;">
+          <div style="flex: 1; min-height: 200px;">
+            <label>Concurrently Generated Drafts</label>
+            <div id="moa-drafts" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 12px; max-height: 350px; overflow-y: auto; text-align: left;">Draft responses will display here...</div>
+          </div>
+          <div style="flex: 1; min-height: 200px;">
+            <label>Final Synthesized Consensus</label>
+            <div class="output" id="moa-output" style="text-align: left; margin: 0; min-height: 310px; max-height: 350px; overflow-y: auto;">Final answer will appear here...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEME FACTORY PANEL -->
+    <div class="panel" id="panel-meme">
+      <div class="card">
+        <div class="card-title">🎭 Meme Factory (Concept generator & PIL Overlay)</div>
+        
+        <label>Meme Subject / Concept</label>
+        <textarea id="meme-prompt" placeholder="E.g., Programmer debugging code at 3 AM..."></textarea>
+        
+        <label>Rendering Engine</label>
+        <select id="meme-engine">
+          <option value="flux1-schnell-q8.gguf" selected>FLUX.1 Schnell Q8 (4-Step)</option>
+          <option value="z_image_turbo.safetensors">Z-Image Turbo (8-Step)</option>
+        </select>
+        
+        <button class="btn btn-primary" onclick="generateMeme()" id="btn-meme">Create Meme</button>
+        <div class="output" id="meme-output">Meme output will appear here...</div>
+      </div>
+    </div>
+
+    <!-- FINANCE TEAM PANEL -->
+    <div class="panel" id="panel-finance">
+      <div class="card">
+        <div class="card-title">💼 AI Financial Analyst Team (yfinance & Multi-Agent)</div>
+        <label>Stock Ticker Symbol</label>
+        <input type="text" id="finance-ticker" placeholder="E.g. AAPL, NVDA, TSLA, MSFT..." style="max-width: 300px;">
+        <button class="btn btn-primary" onclick="generateFinanceReport()" id="btn-finance">Analyze Stock & Generate Report</button>
+        <div class="output" id="finance-output" style="text-align: left; line-height: 1.6; max-height: 500px; overflow-y: auto;">Investment report will appear here...</div>
+      </div>
+    </div>
+
+    <!-- MCP AGENT PANEL -->
+    <div class="panel" id="panel-mcp">
+      <div class="card">
+        <div class="card-title">🔌 Model Context Protocol (MCP) Agent (Dynamic Tool Calling)</div>
+        <label>Agent Prompt / Instruction</label>
+        <textarea id="mcp-prompt" placeholder="Ask something that requires a tool, e.g.: 'What is the monthly payment on a 100k loan at 6.2% interest for 15 years?' or 'What is the weather in Seattle?'"></textarea>
+        <button class="btn btn-primary" onclick="runMCPLoop()" id="btn-mcp">Run Agent Loop</button>
+        <div style="display: flex; gap: 16px; margin-top: 18px;">
+          <div style="flex: 1;">
+            <label>Tool Execution Logs</label>
+            <div id="mcp-logs" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 12px; min-height: 200px; max-height: 300px; overflow-y: auto; text-align: left; font-family: monospace;">No tools executed yet.</div>
+          </div>
+          <div style="flex: 1;">
+            <label>Agent Final Answer</label>
+            <div class="output" id="mcp-output" style="text-align: left; margin: 0; min-height: 200px; max-height: 300px; overflow-y: auto;">Final answer will appear here...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT WITH SOURCE PANEL -->
+    <div class="panel" id="panel-chat-source">
+      <div class="card">
+        <div class="card-title">📂 Chat with Data Sources (GitHub / YouTube / Gmail RAG)</div>
+        <div class="row">
+          <div style="flex: 1;">
+            <label>Source Type</label>
+            <select id="chat-source-type" onchange="handleSourceTypeChange()">
+              <option value="github">GitHub Repository (Public URL)</option>
+              <option value="youtube">YouTube Video (URL or ID)</option>
+              <option value="gmail">Email / Raw Document (Paste Text)</option>
+            </select>
+          </div>
+          <div style="flex: 2;">
+            <label id="source-input-label">Repository URL</label>
+            <input type="text" id="chat-source-payload" placeholder="E.g., https://github.com/Shubhamsaboo/awesome-llm-apps">
+            <textarea id="chat-source-textarea" placeholder="Paste email content or document text here..." style="display: none; min-height: 80px;"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="ingestSourceData()" id="btn-ingest-source" style="margin-bottom: 18px;">Ingest Source Context</button>
+        <div id="ingest-status" style="font-size: 13px; margin-bottom: 18px; color: var(--yellow);">Select a source and click Ingest to start.</div>
+        
+        <div style="border-top: 1px solid var(--border); padding-top: 18px; display: none;" id="source-chat-section">
+          <label>Chat with Ingested Source (<span id="active-source-name" style="color: var(--accent);">None</span>)</label>
+          <div class="output" id="source-chat-history" style="text-align: left; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); margin-bottom: 12px;">Chat messages will appear here...</div>
+          <div style="display: flex; gap: 12px;">
+            <input type="text" id="source-chat-input" placeholder="Ask a question about the ingested source document..." onkeydown="if(event.key==='Enter') sendSourceChatMessage()">
+            <button class="btn btn-primary" onclick="sendSourceChatMessage()" id="btn-send-source-chat" style="padding: 12px 20px;">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOICE AGENT PANEL -->
+    <div class="panel" id="panel-voice-agent">
+      <div class="card">
+        <div class="card-title">🎙️ Conversational Voice AI Assistant (Speech-to-Speech Loop)</div>
+        <div style="text-align: center; padding: 30px 0;">
+          <div id="voice-status" style="margin-bottom: 18px; font-weight: 600; color: var(--text-muted);">Click the mic to speak to the Assistant</div>
+          <button class="btn" id="btn-voice-mic" onclick="toggleVoiceRecording()" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); color: #000; font-size: 32px; box-shadow: 0 0 20px rgba(0,240,255,0.2); transition: all 0.3s ease;">
+            🎤
+          </button>
+        </div>
+        <div style="display: flex; gap: 16px; margin-top: 18px;">
+          <div style="flex: 1;">
+            <label>You Said (Transcribed)</label>
+            <div class="output" id="voice-user-text" style="text-align: left; min-height: 80px; margin: 0; background: rgba(255,255,255,0.02);">Transcription will show here...</div>
+          </div>
+          <div style="flex: 1;">
+            <label>Assistant Replied</label>
+            <div class="output" id="voice-agent-text" style="text-align: left; min-height: 80px; margin: 0; background: rgba(0,255,136,0.02);">Speech reply will show here...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATIVE UI PANEL -->
+    <div class="panel" id="panel-gen-ui">
+      <div class="card" style="max-width: 1200px;">
+        <div class="card-title">💻 Generative UI Playground (On-the-fly Component Generator)</div>
+        <label>Component Description / Prompt</label>
+        <textarea id="gen-ui-prompt" placeholder="E.g., Generate a beautiful dark-themed loan calculator with nice sliding controls and dynamic charts..."></textarea>
+        <button class="btn btn-primary" onclick="generateUIComponent()" id="btn-gen-ui" style="margin-bottom: 18px;">Generate & Render UI Component</button>
+        
+        <div style="display: flex; gap: 20px; margin-top: 18px; height: 500px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+            <label>Generated Source Code</label>
+            <textarea id="gen-ui-code" style="flex: 1; font-family: monospace; font-size: 11px; margin-bottom: 0; background: rgba(0,0,0,0.6);" readonly></textarea>
+          </div>
+          <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; background: #fff; overflow: hidden;">
+            <div style="background: #e0e0e0; padding: 6px 12px; font-size: 11px; font-weight: 600; color: #333; border-bottom: 1px solid #ccc; display: flex; align-items: center; justify-content: space-between;">
+              <span>Live Render Sandbox (iframe)</span>
+              <span style="color: green;">● Sandboxed</span>
+            </div>
+            <iframe id="gen-ui-sandbox" style="flex: 1; border: none; background: #fff; width: 100%; height: 100%;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAG MEMORY PANEL -->
+    <div class="panel" id="panel-rag-memory">
+      <div class="card">
+        <div class="card-title">🧠 RAG Local Memory Database</div>
+        
+        <div style="display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap;">
+          <div style="flex: 2; min-width: 200px;">
+            <label>Search Query</label>
+            <input type="text" id="rag-query-input" placeholder="Search memories, OCR texts, or transcripts..." onkeydown="if(event.key==='Enter') searchRAG()">
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <label>Search Mode</label>
+            <select id="rag-search-mode" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; width: 100%;">
+              <option value="semantic" selected>🧠 Semantic AI Search</option>
+              <option value="keyword">🔍 Keyword Search</option>
+            </select>
+          </div>
+          <div style="width: 100px;">
+            <label>Limit Hits</label>
+            <input type="number" id="rag-query-limit" value="5" min="1" max="50" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; width: 100%;">
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="searchRAG()" style="width: 100%; margin-bottom: 18px;">Search Memory</button>
+        <div class="output" id="rag-query-output">Results will appear here...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Asset Gallery Sidebar -->
+  <div class="asset-sidebar" id="assetSidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()">📂</button>
+    <div class="sidebar-header">
+      <h3 style="font-size: 13px; text-transform: uppercase; color: var(--accent); letter-spacing: 1px;">Asset Gallery</h3>
+    </div>
+    <div class="asset-list" id="assetList" ondragover="event.preventDefault()" ondrop="dropToAssetBin(event)">
+      <div style="color: var(--text-muted); font-size: 12px; text-align: center; margin-top: 20px;">No assets generated yet.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  
+  if (name === 'extract') {
+    refreshIngestedSources();
+  }
+}
+
+async function refreshGPU() {
+  try {
+    const r = await fetch('/api/gpu/status');
+    const d = await r.json();
+    const g = d.gpus || {};
+    ['a0', 'a1'].forEach((key, i) => {
+      const gpu = g[key];
+      const bar = document.getElementById('gpu' + i + 'bar');
+      const stats = document.getElementById('gpu' + i + 'stats');
+      if (gpu) {
+        const pct = Math.round((gpu.vram_used_mb / gpu.vram_total_mb) * 100);
+        bar.style.width = pct + '%';
+        bar.style.background = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--yellow)' : 'var(--accent)';
+        stats.textContent = `${gpu.vram_used_mb}/${gpu.vram_total_mb}MB | ${gpu.temperature_c}°C | ${gpu.utilization_pct}%`;
+      } else {
+        bar.style.width = '0%';
+        stats.textContent = 'Unavailable';
+      }
+    });
+  } catch (e) {
+    console.error('GPU status error:', e);
+  }
+}
+
+async function refreshServices() {
+  try {
+    const r = await fetch('/health');
+    const d = await r.json();
+    const s = d.services || {};
+    ['ollama', 'comfyui', 'whisper', 'f5tts'].forEach(svc => {
+      const el = document.getElementById('svc-' + svc + '-st');
+      if (el) {
+        const status = s[svc] || 'offline';
+        el.textContent = status;
+        el.className = 'status ' + (status === 'online' ? 'online' : 'offline');
+      }
+    });
+  } catch (e) {
+    console.error('Health check error:', e);
+  }
+}
+
+function sttFileSelected(input) {
+  const label = document.getElementById('stt-label');
+  if (input.files.length > 0) {
+    label.textContent = input.files[0].name;
+  }
+}
+
+function previewOCRFile(input) {
+  const preview = document.getElementById('ocr-preview');
+  const container = document.getElementById('ocr-preview-container');
+  if (input.files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target.result;
+      container.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+async function sendText() {
+  const model = document.getElementById('text-model').value;
+  const system = document.getElementById('text-system').value;
+  const input = document.getElementById('text-input').value;
+  const rag = document.getElementById('text-rag').checked;
+  const output = document.getElementById('text-output');
+  if (!input.trim()) return;
+
+  output.textContent = '';
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Thinking...';
+
+  try {
+    const r = await fetch('/api/text/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model,
+        system_prompt: system,
+        rag: rag,
+        messages: [{ role: 'user', content: input }]
+      })
+    });
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.message && data.message.content) {
+              output.textContent += data.message.content;
+            }
+            if (data.error) {
+              output.textContent += '\n[ERROR] ' + data.error;
+            }
+          } catch (e) {}
+        }
+      }
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate Text';
+  }
+}
+
+async function generateImage() {
+  const prompt = document.getElementById('img-prompt').value;
+  const model = document.getElementById('img-model').value;
+  const res = document.getElementById('img-res').value.split('x');
+  const width = parseInt(res[0]);
+  const height = parseInt(res[1]);
+  const steps = parseInt(document.getElementById('img-steps').value);
+  const neg = document.getElementById('img-neg').value;
+  const output = document.getElementById('img-output');
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Generating image...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/image/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, model, width, height, steps, negative_prompt: neg })
+    });
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `<img src="${d.output_url}" alt="Generated image"><br><small>${d.job_id}</small>`;
+      addAssetToBin(d.output_url, 'image');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateFastImage() {
+  const prompt = document.getElementById('fastimg-prompt').value;
+  const model = document.getElementById('fastimg-model').value;
+  const res = document.getElementById('fastimg-res').value.split('x');
+  const width = parseInt(res[0]);
+  const height = parseInt(res[1]);
+  const steps = parseInt(document.getElementById('fastimg-steps').value);
+  const neg = document.getElementById('fastimg-neg').value;
+  const output = document.getElementById('fastimg-output');
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Generating image...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/image/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, model, width, height, steps, negative_prompt: neg })
+    });
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `<img src="${d.output_url}" alt="Generated image"><br><small>${d.job_id}</small>`;
+      addAssetToBin(d.output_url, 'image');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateVideo() {
+  const prompt = document.getElementById('vid-prompt').value;
+  const model = document.getElementById('vid-model').value;
+  const width = parseInt(document.getElementById('vid-width').value);
+  const height = parseInt(document.getElementById('vid-height').value);
+  const frames = parseInt(document.getElementById('vid-frames').value);
+  const mode = document.getElementById('vid-mode').value;
+  const output = document.getElementById('vid-output');
+  if (!prompt.trim()) return;
+
+  let start_image = "";
+  let end_image = "";
+  if (mode !== 't2v') {
+    const startImg = document.getElementById('vid-start-preview');
+    if (startImg && startImg.src && (startImg.src.startsWith('data:image/') || startImg.src.includes('/output/'))) {
+      start_image = startImg.src;
+    }
+    if (mode === 'interpolation') {
+      const endImg = document.getElementById('vid-end-preview');
+      if (endImg && endImg.src && (endImg.src.startsWith('data:image/') || endImg.src.includes('/output/'))) {
+        end_image = endImg.src;
+      }
+    }
+  }
+
+  output.innerHTML = '<span style="color:var(--yellow)">Generating video... (Typically takes 1-3 minutes)</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/video/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, model, width, height, frames, mode, start_image, end_image })
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      throw new Error(d.detail || JSON.stringify(d));
+    }
+    if (d.output_url) {
+      output.innerHTML = `<video src="${d.output_url}" controls autoplay loop></video><br><small>${d.job_id}</small>`;
+      addAssetToBin(d.output_url, 'video');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function handleVidModeChange() {
+  const mode = document.getElementById('vid-mode').value;
+  const imageInputs = document.getElementById('vid-image-inputs');
+  const endContainer = document.getElementById('vid-end-container');
+  
+  if (mode === 't2v') {
+    imageInputs.style.display = 'none';
+  } else if (mode === 'i2v') {
+    imageInputs.style.display = 'flex';
+    endContainer.style.display = 'none';
+  } else if (mode === 'interpolation') {
+    imageInputs.style.display = 'flex';
+    endContainer.style.display = 'block';
+  }
+}
+
+function previewFile(input, previewId) {
+  const preview = document.getElementById(previewId);
+  const container = document.getElementById(previewId + '-container');
+  if (input.files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target.result;
+      container.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+async function transcribeAudio() {
+  const fileInput = document.getElementById('stt-file');
+  const lang = document.getElementById('stt-lang').value;
+  const output = document.getElementById('stt-output');
+  if (!fileInput.files.length) return;
+
+  output.textContent = 'Transcribing...';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    if (lang) formData.append('language', lang);
+
+    const r = await fetch('/api/audio/transcribe', { method: 'POST', body: formData });
+    const d = await r.json();
+    output.textContent = d.text || d.transcription || JSON.stringify(d, null, 2);
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateSpeech() {
+  const text = document.getElementById('tts-input').value;
+  const voice = document.getElementById('tts-voice').value;
+  const output = document.getElementById('tts-output');
+  if (!text.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Generating speech...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/audio/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice })
+    });
+    if (r.ok) {
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      output.innerHTML = `<audio src="${url}" controls autoplay></audio>`;
+    } else {
+      const d = await r.json();
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateMusic() {
+  const prompt = document.getElementById('music-prompt').value;
+  const lyrics = document.getElementById('music-lyrics').value;
+  const model = document.getElementById('music-model').value;
+  const output = document.getElementById('music-output');
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Generating track...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/music/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, lyrics, model })
+    });
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `<audio src="${d.output_url}" controls></audio><br><small>${d.job_id}</small>`;
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generate3D() {
+  const prompt = document.getElementById('threed-prompt').value;
+  const mode = document.getElementById('threed-mode').value;
+  const output = document.getElementById('threed-output');
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Generating 3D asset geometry...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/3d/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, mode })
+    });
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `Geometry generated successfully!<br>
+      OBJ Link: <a href="${d.output_url}" target="_blank" style="color:var(--accent)">Download .obj Mesh</a><br>
+      GLB Link: <a href="${d.glb_url}" target="_blank" style="color:var(--accent)">Download .glb Asset</a>`;
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function runOCR() {
+  const fileInput = document.getElementById('ocr-file');
+  const output = document.getElementById('ocr-output');
+  if (!fileInput.files.length) return;
+
+  output.textContent = 'Processing OCR...';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      const r = await fetch('/api/extract/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_data: base64Image })
+      });
+      const d = await r.json();
+      output.textContent = d.text || JSON.stringify(d, null, 2);
+      if (d.output_url) {
+        addAssetToBin(d.output_url, 'document');
+      }
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function switchSubTab(type) {
+  document.querySelectorAll('.sub-tab').forEach(t => {
+    t.style.color = 'var(--text-muted)';
+    t.style.borderBottomColor = 'transparent';
+  });
+  const activeTab = document.getElementById('sub-tab-' + type);
+  if (activeTab) {
+    activeTab.style.color = 'var(--accent)';
+    activeTab.style.borderBottomColor = 'var(--accent)';
+  }
+  
+  document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+  const activePanel = document.getElementById('sub-panel-' + type);
+  if (activePanel) {
+    activePanel.style.display = 'block';
+  }
+
+  const autoToggle = document.getElementById('ingest-auto-toggle').checked;
+  const manualBtn = document.getElementById('btn-manual-ingest');
+  if (autoToggle) {
+    manualBtn.style.display = 'none';
+  } else {
+    manualBtn.style.display = 'block';
+  }
+}
+
+function handleAutoIngestToggle(checked) {
+  const manualBtn = document.getElementById('btn-manual-ingest');
+  manualBtn.style.display = checked ? 'none' : 'block';
+}
+
+function toggleAdvancedIngestSettings() {
+  const panel = document.getElementById('advanced-ingest-settings');
+  const arrow = document.getElementById('advanced-ingest-arrow');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    arrow.textContent = '▲';
+  } else {
+    panel.style.display = 'none';
+    arrow.textContent = '▼';
+  }
+}
+
+async function runPDFExtract() {
+  const fileInput = document.getElementById('pdf-file');
+  const ocr = document.getElementById('pdf-ocr').checked;
+  const autoIngest = document.getElementById('ingest-auto-toggle').checked;
+  const output = document.getElementById('pdf-output');
+  if (!fileInput.files.length) {
+    alert('Please select a PDF file first.');
+    return;
+  }
+
+  const cleanSpacing = document.getElementById('ingest-clean-spacing').checked;
+  const fixBrokenSentences = document.getElementById('ingest-fix-broken-sentences').checked;
+  const preserveParagraphs = document.getElementById('ingest-preserve-paragraphs').checked;
+  const chunkSize = document.getElementById('ingest-chunk-size').value;
+  const chunkOverlap = document.getElementById('ingest-chunk-overlap').value;
+  const chunkingStrategy = document.getElementById('ingest-chunk-strategy').value;
+
+  output.textContent = 'Extracting PDF content...';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('ocr_all', ocr);
+    formData.append('auto_ingest', autoIngest);
+    formData.append('clean_spacing', cleanSpacing);
+    formData.append('fix_broken_sentences', fixBrokenSentences);
+    formData.append('preserve_paragraphs', preserveParagraphs);
+    formData.append('chunk_size', chunkSize);
+    formData.append('chunk_overlap', chunkOverlap);
+    formData.append('chunking_strategy', chunkingStrategy);
+
+    const r = await fetch('/api/extract/pdf', {
+      method: 'POST',
+      body: formData
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Extraction failed');
+    }
+    const d = await r.json();
+    output.textContent = d.text || JSON.stringify(d, null, 2);
+    output.dataset.filename = d.filename;
+    output.dataset.tool = 'pdf';
+
+    if (d.output_url) {
+      addAssetToBin(d.output_url, 'document');
+    }
+
+    if (autoIngest) {
+      alert(`PDF extracted and successfully indexed into RAG memory: ${d.chunks_ingested} chunk(s) created.`);
+      refreshIngestedSources();
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function runLinkExtract() {
+  const urlInput = document.getElementById('link-url');
+  const url = urlInput.value.trim();
+  const autoIngest = document.getElementById('ingest-auto-toggle').checked;
+  const output = document.getElementById('pdf-output');
+  if (!url) {
+    alert('Please enter a valid webpage URL.');
+    return;
+  }
+
+  const cleanSpacing = document.getElementById('ingest-clean-spacing').checked;
+  const fixBrokenSentences = document.getElementById('ingest-fix-broken-sentences').checked;
+  const preserveParagraphs = document.getElementById('ingest-preserve-paragraphs').checked;
+  const chunkSize = parseInt(document.getElementById('ingest-chunk-size').value, 10) || 1000;
+  const chunkOverlap = parseInt(document.getElementById('ingest-chunk-overlap').value, 10) || 100;
+  const chunkingStrategy = document.getElementById('ingest-chunk-strategy').value;
+
+  output.textContent = 'Extracting content from webpage link...';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/extract/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        url: url, 
+        auto_ingest: autoIngest,
+        clean_spacing: cleanSpacing,
+        fix_broken_sentences: fixBrokenSentences,
+        preserve_paragraphs: preserveParagraphs,
+        chunk_size: chunkSize,
+        chunk_overlap: chunkOverlap,
+        chunking_strategy: chunkingStrategy
+      })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Extraction failed');
+    }
+    const d = await r.json();
+    output.textContent = d.text;
+    output.dataset.filename = d.filename;
+    output.dataset.tool = 'link';
+    
+    if (d.output_url) {
+      addAssetToBin(d.output_url, 'document');
+    }
+    
+    if (autoIngest) {
+      alert(`Webpage extracted and successfully indexed into RAG memory: ${d.chunks_ingested} chunk(s) created.`);
+      refreshIngestedSources();
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function runTextIngest() {
+  const titleInput = document.getElementById('text-title');
+  const title = titleInput.value.trim() || 'Raw Text Input';
+  const textContent = document.getElementById('text-raw-content').value.trim();
+  const output = document.getElementById('pdf-output');
+  if (!textContent) {
+    alert('Please enter some text content to ingest.');
+    return;
+  }
+
+  const cleanSpacing = document.getElementById('ingest-clean-spacing').checked;
+  const fixBrokenSentences = document.getElementById('ingest-fix-broken-sentences').checked;
+  const preserveParagraphs = document.getElementById('ingest-preserve-paragraphs').checked;
+  const chunkSize = parseInt(document.getElementById('ingest-chunk-size').value, 10) || 1000;
+  const chunkOverlap = parseInt(document.getElementById('ingest-chunk-overlap').value, 10) || 100;
+  const chunkingStrategy = document.getElementById('ingest-chunk-strategy').value;
+
+  output.textContent = 'Ingesting raw text content...';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    // Basic JS regex cleanup on raw text input too
+    let cleanedText = textContent;
+    if (fixBrokenSentences) {
+      cleanedText = cleanedText.replace(/(?<![.!?])\n/g, ' ');
+    }
+    if (preserveParagraphs) {
+      cleanedText = cleanedText.replace(/\n{2,}/g, '\n\n');
+    }
+    if (cleanSpacing) {
+      cleanedText = cleanedText.replace(/[ \t]+/g, ' ').replace(/ \n/g, '\n').replace(/\n /g, '\n');
+    }
+
+    const payload = {
+      text: cleanedText,
+      chunk_size: chunkSize,
+      chunk_overlap: chunkOverlap,
+      chunking_strategy: chunkingStrategy,
+      metadata: {
+        source_file: title + '.txt',
+        source_name: title,
+        source_type: 'text',
+        extraction_tool: 'text'
+      }
+    };
+
+    const r = await fetch('/api/rag/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Ingestion failed');
+    }
+    const d = await r.json();
+    output.textContent = `Raw text "${title}" successfully ingested!\n\n${cleanedText}`;
+    output.dataset.filename = title + '.txt';
+    output.dataset.tool = 'text';
+
+    alert(`Successfully indexed text into RAG memory: ${d.chunks_ingested} chunk(s) created.`);
+    refreshIngestedSources();
+    document.getElementById('text-raw-content').value = '';
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function refreshIngestedSources() {
+  const body = document.getElementById('ingested-sources-body');
+  if (!body) return;
+
+  body.innerHTML = `
+    <tr>
+      <td colspan="4" style="padding: 24px; text-align: center; color: var(--yellow);">
+        Refreshing active memory sources...
+      </td>
+    </tr>
+  `;
+
+  try {
+    const r = await fetch('/api/rag/sources');
+    if (!r.ok) throw new Error('Failed to fetch sources');
+    const d = await r.json();
+    const sources = d.sources || [];
+
+    if (sources.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted); font-style: italic;">
+            No sources indexed in local memory yet. Ingest documents/links to populate this list.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    body.innerHTML = sources.map(src => {
+      const icon = src.source_type === 'pdf' ? '📄' : src.source_type === 'link' ? '🌐' : '📝';
+      const idEscaped = src.source_id.replace(/'/g, "\\'");
+      return `
+        <tr style="border-bottom: 1px solid var(--border); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.01)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td style="padding: 12px 16px; font-weight: 500; word-break: break-all;">${icon} ${src.source_name}</td>
+          <td style="padding: 12px 16px; text-transform: uppercase; font-size: 11px; color: var(--text-muted); font-weight: 600;">${src.source_type}</td>
+          <td style="padding: 12px 16px; font-family: monospace;">${src.chunks}</td>
+          <td style="padding: 12px 16px; text-align: right;">
+            <button class="btn btn-secondary" onclick="deleteSource('${idEscaped}')" style="padding: 4px 8px; font-size: 11px; color: var(--red); border-color: rgba(255,51,102,0.1); background: transparent; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px;">
+              🗑️ Delete
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="4" style="padding: 24px; text-align: center; color: var(--red);">
+          Error loading sources: ${e.message}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+async function deleteSource(sourceId) {
+  if (!confirm('Are you sure you want to delete this source and all its vectors from memory?')) {
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/rag/delete-source', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source_id: sourceId })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Delete failed');
+    }
+    refreshIngestedSources();
+  } catch (e) {
+    alert('[ERROR] Failed to delete source: ' + e.message);
+  }
+}
+
+async function clearAllRAGMemory() {
+  if (!confirm('🚨 WARNING: This will permanently delete ALL documents, links, and indexed vectors from local RAG Memory DB! This cannot be undone. Proceed?')) {
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/rag/clear-all', {
+      method: 'POST'
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Purge failed');
+    }
+    alert('Local RAG memory database successfully cleared.');
+    refreshIngestedSources();
+  } catch (e) {
+    alert('[ERROR] Failed to clear memory: ' + e.message);
+  }
+}
+
+
+async function runUpscale() {
+  const url = document.getElementById('upscale-url').value;
+  const factor = parseInt(document.getElementById('upscale-factor').value);
+  const output = document.getElementById('upscale-output');
+  if (!url.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Running super-resolution upscaling...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/postprocess/upscale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: url, scale: factor })
+    });
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `<img src="${d.output_url}" alt="Upscaled image"><br><small>${d.job_id}</small>`;
+      addAssetToBin(d.output_url, 'image');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function runLipsync() {
+  const vid = document.getElementById('lipsync-video').value;
+  const aud = document.getElementById('lipsync-audio').value;
+  const output = document.getElementById('lipsync-output');
+  if (!vid.trim() || !aud.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Running LatentSync lip alignment pipeline...</span>';
+  const btn = event.target;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/postprocess/lipsync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ video_url: vid, audio_url: aud })
+    });
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `<video src="${d.output_url}" controls autoplay loop></video><br><small>${d.job_id}</small>`;
+      addAssetToBin(d.output_url, 'video');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function ingestText(elementId) {
+  const text = document.getElementById(elementId).textContent;
+  if (!text || text.startsWith('Processing') || text.startsWith('OCR result') || text.startsWith('PDF text') || text.startsWith('Extracted text')) {
+    alert('No valid text to ingest.');
+    return;
+  }
+  
+  const outputEl = document.getElementById(elementId);
+  const sourceFile = outputEl.dataset.filename || "uploaded_extract";
+  const tool = outputEl.dataset.tool || elementId.split('-')[0];
+
+  const payload = {
+    text: text,
+    metadata: {
+      source_file: sourceFile,
+      source_name: sourceFile.endsWith('.txt') ? sourceFile.slice(0, -4) : sourceFile,
+      extraction_tool: tool
+    }
+  };
+  
+  try {
+    const r = await fetch('/api/rag/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    alert(`Successfully indexed text chunk into RAG memory: ${d.chunks_ingested} chunk(s) created.`);
+    refreshIngestedSources();
+  } catch (e) {
+    alert('Ingestion failed: ' + e.message);
+  }
+}
+
+
+async function searchRAG() {
+  const q = document.getElementById('rag-query-input').value;
+  const output = document.getElementById('rag-query-output');
+  const searchMode = document.getElementById('rag-search-mode').value;
+  const limit = parseInt(document.getElementById('rag-query-limit').value, 10) || 5;
+  if (!q.trim()) return;
+
+  output.textContent = 'Searching local memory database...';
+
+  try {
+    const r = await fetch('/api/rag/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q, search_mode: searchMode, limit: limit })
+    });
+    const d = await r.json();
+    const hits = d.hits || [];
+    if (hits.length === 0) {
+      output.textContent = 'No matching memories found.';
+    } else {
+      output.innerHTML = hits.map((h, i) => {
+        let textToShow = h.text;
+        if (searchMode === 'keyword') {
+          // Highlight matches case-insensitively
+          const regex = new RegExp(`(${q.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+          textToShow = textToShow.replace(regex, `<mark style="background: var(--accent); color: #000; border-radius: 3px; padding: 1px 3px; font-weight: 600;">$1</mark>`);
+        }
+        
+        return `
+          <div style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px;">
+            <strong>Memory #${i+1}</strong> (${searchMode === 'semantic' ? `Score: ${h.score.toFixed(3)}` : `Matches: ${h.score}`} | Source: ${h.source} | Tool: ${h.tool})
+            <p style="margin-top: 6px; color: #ccc; line-height: 1.5;">${textToShow}</p>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  }
+}
+
+function toggleSidebar() {
+  document.getElementById('assetSidebar').classList.toggle('collapsed');
+}
+function addAssetToBin(url, type) {
+  const list = document.getElementById('assetList');
+  if (list.querySelector('div') && list.querySelector('div').textContent.includes('No assets')) {
+    list.innerHTML = '';
+  }
+  
+  const filename = url.split('/').pop();
+  const item = document.createElement('div');
+  item.className = 'asset-item';
+  item.draggable = true;
+  item.ondragstart = (e) => { e.dataTransfer.setData('text/plain', url); };
+  
+  let mediaHtml = '';
+  if (type === 'image') {
+    mediaHtml = `<img src="${url}" alt="${filename}">`;
+  } else if (type === 'video') {
+    mediaHtml = `<video src="${url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`;
+  } else {
+    mediaHtml = `
+      <div class="doc-icon-wrapper" style="width:100%; height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.05); border-radius:6px; color:#fff; font-size:24px; padding:8px; border: 1px dashed rgba(255,255,255,0.15);">
+        📄
+        <span style="font-size:10px; color:#aaa; margin-top:4px;">TXT Document</span>
+      </div>
+    `;
+  }
+    
+  item.innerHTML = `
+    <a href="${url}" download="${filename}" style="display:block; text-decoration:none; color:inherit; height:100%;" title="Click to download ${filename}">
+      ${mediaHtml}
+      <div class="filename">${filename}</div>
+    </a>
+  `;
+  list.insertBefore(item, list.firstChild);
+}
+
+function dropToAssetBin(e) {
+  e.preventDefault();
+  const files = e.dataTransfer.files;
+  for (const file of files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (evt) => { addAssetToBin(evt.target.result, 'image'); };
+      reader.readAsDataURL(file);
+    }
+  }
+}
+
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+function dragLeave(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); }
+function dropFile(e, inputId, previewId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  const textData = e.dataTransfer.getData('text/plain');
+  if (textData && textData.startsWith('/output/')) {
+    const img = document.getElementById(previewId);
+    img.src = textData;
+    img.parentElement.style.display = 'block';
+  } else {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const input = document.getElementById(inputId);
+      input.files = files;
+      previewFile(input, previewId);
+    }
+  }
+}
+
+async function generateCuration() {
+  const dir = document.getElementById('curate-dir').value;
+  const strictness = parseInt(document.getElementById('curate-strictness').value);
+  const pacing = document.getElementById('curate-pacing').checked ? 1.0 : 3.0;
+  const output = document.getElementById('curate-output');
+  const btn = document.getElementById('btn-curate');
+
+  output.innerHTML = '<span style="color:var(--yellow)">Curating media & compiling highlight reel (GPU 1)...</span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/curate/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source_dir: dir, strictness: strictness, pacing: pacing })
+    });
+    
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `<video src="${d.output_url}" controls autoplay loop></video><br><small>${d.job_id} | Completed successfully on GPU 1</small>`;
+      addAssetToBin(d.output_url, 'video');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateStory() {
+  const prompt = document.getElementById('story-prompt').value;
+  const style = document.getElementById('story-style').value;
+  const voice = document.getElementById('story-voice').value;
+  const scenes_count = parseInt(document.getElementById('story-scenes').value);
+  const image_model = document.getElementById('story-engine').value;
+  const output = document.getElementById('story-output');
+  const btn = document.getElementById('btn-story');
+
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Starting AI Storytelling Agent...<br>1. Calling Ollama for script & storyboard prompts...</span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/chain/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, style, voice, scenes_count, image_model })
+    });
+    
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    
+    const d = await r.json();
+    if (d.output_url) {
+      let scriptHtml = '<h3>Generated Storyboard:</h3><ol style="text-align:left; margin-bottom:16px;">';
+      if (d.script) {
+        d.script.forEach(scene => {
+          scriptHtml += `<li><strong>Visual Prompt:</strong> <em>${scene.image_prompt}</em><br><strong>Narration:</strong> "${scene.narration}"</li>`;
+        });
+      }
+      scriptHtml += '</ol>';
+      
+      output.innerHTML = `
+        ${scriptHtml}
+        <video src="${d.output_url}" controls autoplay loop style="max-width:100%; border-radius:8px;"></video>
+        <br><small>${d.job_id} | Story successfully generated using local LLM + F5-TTS + ComfyUI</small>
+      `;
+      addAssetToBin(d.output_url, 'video');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateResearch() {
+  const prompt = document.getElementById('research-prompt').value;
+  const output = document.getElementById('research-output');
+  const btn = document.getElementById('btn-research');
+
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Starting Deep Research Agent...<br>1. Generating search queries...</span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/research/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    
+    const d = await r.json();
+    if (d.report) {
+      let formattedReport = d.report
+        .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+        .replace(/## (.*?)\n/g, '<h2>$1</h2>')
+        .replace(/# (.*?)\n/g, '<h1>$1</h1>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>')
+        .replace(/\* \*\*(.*?)\*\*/g, '<li><strong>$1</strong>')
+        .replace(/\* (.*?)/g, '<li>$1');
+      
+      output.innerHTML = `
+        <div style="background: rgba(255,255,255,0.02); padding: 18px; border-radius: 8px; border: 1px solid var(--border);">
+          ${formattedReport}
+        </div>
+        <br><small>Report ID: ${d.job_id} | Completed successfully using local LLM + DuckDuckGo</small>
+      `;
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateMoAChat() {
+  const prompt = document.getElementById('moa-prompt').value;
+  const system_prompt = document.getElementById('moa-system').value;
+  const synthesizer_model = document.getElementById('moa-synth').value;
+  const output = document.getElementById('moa-output');
+  const draftsBox = document.getElementById('moa-drafts');
+  const btn = document.getElementById('btn-moa');
+
+  const reference_models = [];
+  document.querySelectorAll('input[name="moa-refs"]:checked').forEach(cb => {
+    reference_models.push(cb.value);
+  });
+
+  if (!prompt.trim()) return;
+  if (reference_models.length === 0) {
+    alert("Please select at least one reference model.");
+    return;
+  }
+
+  output.innerHTML = '<span style="color:var(--yellow)">Running reference models in parallel...</span>';
+  draftsBox.innerHTML = 'Querying models...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/moa/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, system_prompt, reference_models, synthesizer_model })
+    });
+    
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    
+    const d = await r.json();
+    if (d.final_response) {
+      let draftsHtml = '';
+      d.drafts.forEach((draft, idx) => {
+        draftsHtml += `<div style="margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+          <strong style="color:var(--accent);">Model: ${draft.model}</strong><br>
+          <p style="white-space: pre-wrap; margin-top:4px;">${draft.content}</p>
+        </div>`;
+      });
+      draftsBox.innerHTML = draftsHtml;
+
+      output.innerHTML = `
+        <div style="background: rgba(0,255,150,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--accent); white-space: pre-wrap;">
+          ${d.final_response}
+        </div>
+      `;
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+    draftsBox.textContent = '[ERROR] Parallel run failed.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateMeme() {
+  const prompt = document.getElementById('meme-prompt').value;
+  const image_model = document.getElementById('meme-engine').value;
+  const output = document.getElementById('meme-output');
+  const btn = document.getElementById('btn-meme');
+
+  if (!prompt.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Meme Factory active... Generating background and captions...</span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/meme/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, image_model })
+    });
+    
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    
+    const d = await r.json();
+    if (d.output_url) {
+      output.innerHTML = `
+        <div style="text-align:center;">
+          <img src="${d.output_url}" style="max-width:100%; max-height:450px; border-radius:8px; border: 2px solid var(--accent);">
+          <br><br>
+          <small><strong>Generated Concept:</strong> Top: "${d.top_text}" | Bottom: "${d.bottom_text}"</small>
+        </div>
+      `;
+      addAssetToBin(d.output_url, 'image');
+    } else {
+      output.textContent = JSON.stringify(d, null, 2);
+    }
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// === GEM 4: FINANCE REPORT ===
+async function generateFinanceReport() {
+  const ticker = document.getElementById('finance-ticker').value;
+  const output = document.getElementById('finance-output');
+  const btn = document.getElementById('btn-finance');
+
+  if (!ticker.trim()) return;
+
+  output.innerHTML = '<span style="color:var(--yellow)">Analyzing stock data and drafting analyst report...</span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/gems/finance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticker })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    const d = await r.json();
+    output.innerHTML = `<div style="background: rgba(0,255,150,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--accent); white-space: pre-wrap;">${d.report}</div>`;
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// === GEM 5: MCP LOOP ===
+async function runMCPLoop() {
+  const prompt = document.getElementById('mcp-prompt').value;
+  const logs = document.getElementById('mcp-logs');
+  const output = document.getElementById('mcp-output');
+  const btn = document.getElementById('btn-mcp');
+
+  if (!prompt.trim()) return;
+
+  logs.textContent = '> Initializing MCP Coordinator...\n> Checking server registry...\n> Sending instructions to agent...';
+  output.innerHTML = '<span style="color:var(--yellow)">Running agent loop...</span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/gems/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    const d = await r.json();
+    if (d.tool_called) {
+      logs.textContent = `> Target Tool: ${d.tool_called}\n> Arguments:\n${JSON.stringify(d.tool_arguments, null, 2)}\n\n> Output Received:\n${d.tool_output}\n\n> Loop completed successfully.`;
+    } else {
+      logs.textContent = `> Checking tools...\n> No tool required for this prompt.\n> Loop completed.`;
+    }
+    output.innerHTML = `<div style="background: rgba(0,255,150,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--accent); white-space: pre-wrap;">${d.final_response}</div>`;
+  } catch (e) {
+    output.textContent = '[ERROR] ' + e.message;
+    logs.textContent += '\n\n[ERROR] MCP Agent failed: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// === GEM 6: CHAT WITH SOURCE ===
+function handleSourceTypeChange() {
+  const type = document.getElementById('chat-source-type').value;
+  const payload = document.getElementById('chat-source-payload');
+  const textarea = document.getElementById('chat-source-textarea');
+  const label = document.getElementById('source-input-label');
+
+  if (type === 'github') {
+    label.textContent = 'Repository URL';
+    payload.style.display = 'block';
+    payload.placeholder = 'E.g., https://github.com/Shubhamsaboo/awesome-llm-apps';
+    textarea.style.display = 'none';
+  } else if (type === 'youtube') {
+    label.textContent = 'YouTube Video URL or ID';
+    payload.style.display = 'block';
+    payload.placeholder = 'E.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    textarea.style.display = 'none';
+  } else if (type === 'gmail') {
+    label.textContent = 'Email / Text Content';
+    payload.style.display = 'none';
+    textarea.style.display = 'block';
+  }
+}
+
+let activeSourceId = null;
+
+async function ingestSourceData() {
+  const type = document.getElementById('chat-source-type').value;
+  const payloadVal = document.getElementById('chat-source-payload').value;
+  const textareaVal = document.getElementById('chat-source-textarea').value;
+  const status = document.getElementById('ingest-status');
+  const btn = document.getElementById('btn-ingest-source');
+  const chatSection = document.getElementById('source-chat-section');
+
+  const payload = type === 'gmail' ? textareaVal : payloadVal;
+  if (!payload.trim()) return;
+
+  status.innerHTML = '<span style="color:var(--yellow)">Cloning/Ingesting source and indexing to memory... (This may take up to a minute)</span>';
+  btn.disabled = true;
+  chatSection.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/gems/ingest-source', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, payload })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    const d = await r.json();
+    if (d.status === 'success') {
+      activeSourceId = d.source_id;
+      document.getElementById('active-source-name').textContent = d.source_name;
+      status.innerHTML = `<span style="color:var(--green)">Ingested successfully! Indexed ${d.chunks_ingested} segments.</span>`;
+      document.getElementById('source-chat-history').innerHTML = '';
+      chatSection.style.display = 'block';
+    }
+  } catch (e) {
+    status.innerHTML = `<span style="color:var(--red)">[ERROR] ${e.message}</span>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function sendSourceChatMessage() {
+  const input = document.getElementById('source-chat-input');
+  const history = document.getElementById('source-chat-history');
+  const btn = document.getElementById('btn-send-source-chat');
+  const prompt = input.value.trim();
+
+  if (!prompt || !activeSourceId) return;
+
+  input.value = '';
+  history.innerHTML += `<div style="margin-bottom:8px; color:var(--accent);"><strong>You:</strong> ${prompt}</div>`;
+  history.scrollTop = history.scrollHeight;
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/gems/chat-source', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, source_id: activeSourceId })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    const d = await r.json();
+    history.innerHTML += `<div style="margin-bottom:12px; color:var(--text); border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:6px;"><strong>Assistant:</strong> ${d.response}</div>`;
+    history.scrollTop = history.scrollHeight;
+  } catch (e) {
+    history.innerHTML += `<div style="margin-bottom:8px; color:var(--red);"><strong>[ERROR]:</strong> ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// === GEM 7: VOICE AI AGENT ===
+let mediaRecorder = null;
+let audioChunks = [];
+let isVoiceRecording = false;
+
+async function toggleVoiceRecording() {
+  const btn = document.getElementById('btn-voice-mic');
+  const status = document.getElementById('voice-status');
+
+  if (!isVoiceRecording) {
+    audioChunks = [];
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) {
+          audioChunks.push(e.data);
+        }
+      };
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        await sendVoiceAudio(audioBlob);
+      };
+      mediaRecorder.start();
+      isVoiceRecording = true;
+      btn.style.boxShadow = '0 0 30px red';
+      btn.style.transform = 'scale(1.1)';
+      status.textContent = 'Listening... Click again to send.';
+    } catch (e) {
+      status.textContent = 'Failed to access mic: ' + e.message;
+    }
+  } else {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    }
+    isVoiceRecording = false;
+    btn.style.boxShadow = '0 0 20px rgba(0,240,255,0.2)';
+    btn.style.transform = 'none';
+    status.textContent = 'Processing voice audio...';
+  }
+}
+
+async function sendVoiceAudio(blob) {
+  const status = document.getElementById('voice-status');
+  const userText = document.getElementById('voice-user-text');
+  const agentText = document.getElementById('voice-agent-text');
+
+  const formData = new FormData();
+  formData.append('file', blob, 'user_speech.wav');
+
+  try {
+    const r = await fetch('/api/gems/voice', {
+      method: 'POST',
+      body: formData
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    const d = await r.json();
+    userText.textContent = d.user_text || '(No speech detected)';
+    agentText.textContent = d.agent_text;
+    status.textContent = 'Click to speak again';
+
+    if (d.audio_url) {
+      const audio = new Audio(d.audio_url);
+      audio.play();
+    }
+  } catch (e) {
+    status.textContent = 'Error: ' + e.message;
+    agentText.textContent = '[ERROR] Speech generation failed.';
+  }
+}
+
+// === GEM 8: GENERATIVE UI ===
+async function generateUIComponent() {
+  const prompt = document.getElementById('gen-ui-prompt').value;
+  const codeBox = document.getElementById('gen-ui-code');
+  const sandbox = document.getElementById('gen-ui-sandbox');
+  const btn = document.getElementById('btn-gen-ui');
+
+  if (!prompt.trim()) return;
+
+  codeBox.value = 'Generating UI component layout and logic...';
+  sandbox.srcdoc = '<html><body style="font-family:sans-serif; padding:20px; background:#fff; color:#333;"><h3>Generating component preview...</h3></body></html>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/gems/generate-ui', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || JSON.stringify(err));
+    }
+    const d = await r.json();
+    codeBox.value = d.html;
+    sandbox.srcdoc = d.html;
+  } catch (e) {
+    codeBox.value = '[ERROR] ' + e.message;
+    sandbox.srcdoc = '<html><body style="color:red; padding:20px;"><h3>Error generating component</h3><p>\' + e.message + \'</p></body></html>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+refreshGPU();
+refreshServices();
+setInterval(refreshGPU, 5000);
+setInterval(refreshServices, 10000);
+
+</script>
+
+<!-- MOBILE FIX: embedded directly — cache-proof, always loads -->
+<style>
+@media (max-width: 768px) {
+  #assetSidebar, .asset-sidebar, .sidebar-toggle { display: none !important; width: 0 !important; overflow: hidden !important; }
+  .gpu-bar { display: none !important; }
+  .header { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 15px; }
+  .services-bar { padding: 7px 14px; gap: 8px; font-size: 11px; }
+  .tabs {
+    position: fixed !important; bottom: 0 !important; top: auto !important;
+    left: 0; right: 0; z-index: 9999;
+    background: rgba(11,11,19,0.97) !important;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(42,42,74,0.6) !important; border-bottom: none !important;
+    overflow-x: auto !important; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    flex-wrap: nowrap !important;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 12px 14px !important; font-size: 11px !important; min-width: max-content !important; white-space: nowrap; }
+  .tab.active { border-bottom: none !important; border-top: 2px solid var(--accent) !important; }
+  .main-container { flex-direction: column !important; }
+  .content-area { padding: 14px !important; padding-bottom: 80px !important; }
+  .panel { max-width: 100% !important; }
+  .card { padding: 16px !important; }
+  .card-title { font-size: 14px !important; margin-bottom: 12px !important; }
+  .row { flex-direction: column !important; gap: 0 !important; }
+  .card-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+  select, input[type=text], input[type=number], textarea { font-size: 16px !important; padding: 13px 14px !important; }
+  .btn { width: 100% !important; padding: 15px 18px !important; font-size: 15px !important; min-height: 50px !important; touch-action: manipulation; }
+  .output { font-size: 12px !important; max-height: 260px !important; padding: 12px !important; word-break: break-word; }
+  .output img, .output video, .output audio { max-width: 100% !important; }
+  label { font-size: 10px; }
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 460px; }
+}
+@media (max-width: 390px) {
+  .header h1 { font-size: 13px !important; }
+  .tab { padding: 10px 11px !important; font-size: 10px !important; }
+  .content-area { padding: 10px !important; padding-bottom: 74px !important; }
+  .card { padding: 13px !important; }
+}
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  .tabs { position: relative !important; bottom: auto !important; border-top: none !important; border-bottom: 1px solid rgba(42,42,74,0.4) !important; }
+  .content-area { padding-bottom: 20px !important; }
+}
+</style>
+<script>
+(function() {
+  if (window.innerWidth > 768) return;
+  var s = document.getElementById('assetSidebar');
+  if (s) { s.style.display = 'none'; s.style.width = '0'; s.classList.add('collapsed'); }
+  document.querySelectorAll('.sidebar-toggle').forEach(function(el) { el.style.display = 'none'; });
+  setTimeout(function() {
+    var active = document.querySelector('.tab.active');
+    if (active) active.scrollIntoView({ inline: 'nearest' });
+  }, 100);
+})();
+window.addEventListener('resize', function() {
+  var s = document.getElementById('assetSidebar');
+  if (!s) return;
+  if (window.innerWidth <= 768) {
+    s.style.display = 'none'; s.classList.add('collapsed');
+    document.querySelectorAll('.sidebar-toggle').forEach(function(el) { el.style.display = 'none'; });
+  } else {
+    s.style.display = ''; s.style.width = '';
+    document.querySelectorAll('.sidebar-toggle').forEach(function(el) { el.style.display = ''; });
+  }
+});
+</body>
+</html>
